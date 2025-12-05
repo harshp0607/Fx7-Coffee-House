@@ -13,7 +13,6 @@ import {
   getDocs
 } from "firebase/firestore";
 import { db } from "../firebase";
-import { requestNotificationPermission } from "../utils/notifications";
 
 const OrderContext = createContext();
 
@@ -45,9 +44,9 @@ export const OrderProvider = ({ children }) => {
       }));
       setSubmittedOrders(ordersData);
 
-      // Filter for pending donations from active orders (not yet verified)
+      // Filter for pending donations from active orders
       const activeDonations = ordersData.filter(
-        (order) => order.donation > 0 && !order.donationVerified
+        (order) => order.donation > 0
       );
       setPendingDonations(activeDonations);
     });
@@ -85,6 +84,12 @@ export const OrderProvider = ({ children }) => {
       }));
 
       setAllCompletedOrders(allOrders);
+
+      // Filter for pending donations
+      const donations = allOrders.filter(
+        (order) => order.donation > 0 && !order.donationVerified
+      );
+      setPendingDonations(donations);
     });
 
     return () => unsubscribe();
@@ -123,16 +128,12 @@ export const OrderProvider = ({ children }) => {
 
   const submitOrder = async (userInfo, donation) => {
     try {
-      // Request notification permission and get FCM token
-      const fcmToken = await requestNotificationPermission();
-
       const newOrder = {
         items: [...orders],
         userInfo,
         donation,
         time: "Just now",
         timestamp: serverTimestamp(),
-        fcmToken: fcmToken || null, // Store FCM token with the order
       };
       const docRef = await addDoc(collection(db, "orders"), newOrder);
       clearOrders();
@@ -166,18 +167,18 @@ export const OrderProvider = ({ children }) => {
 
   const verifyDonation = async (orderId, amount, customerName) => {
     try {
+      // Mark the order's donation as verified first
+      const orderRef = doc(db, "completedOrders", orderId);
+      await updateDoc(orderRef, {
+        donationVerified: true,
+      });
+
       // Add to verified donations collection
       await addDoc(collection(db, "verifiedDonations"), {
         orderId,
         amount,
         customerName,
         verifiedAt: serverTimestamp(),
-      });
-
-      // Mark the order's donation as verified in active orders
-      const orderRef = doc(db, "orders", orderId);
-      await updateDoc(orderRef, {
-        donationVerified: true,
       });
 
       return true;
