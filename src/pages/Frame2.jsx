@@ -9,7 +9,8 @@ const Frame2 = () => {
   const [expandedOrderId, setExpandedOrderId] = useState(null);
 
   return (
-    <div className="page-container">
+    <div className="page-container items-center">
+      <div className="w-full max-w-[1600px] flex flex-col">
       <div className="page-header">
         <div className="flex items-center justify-between gap-5">
           <h1 className="text-3xl font-black tracking-tight text-pine-800">Barista Dashboard</h1>
@@ -269,6 +270,7 @@ const Frame2 = () => {
             </div>
           </>
         )}
+      </div>
       </div>
     </div>
   );

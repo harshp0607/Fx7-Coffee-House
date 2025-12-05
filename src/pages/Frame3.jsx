@@ -78,14 +78,14 @@ const Frame3 = () => {
   }`;
 
   return (
-    <div className="page-container">
-      <div className="page-header flex-row justify-between items-center">
+    <div className="page-container items-center">
+      <div className="w-full max-w-[900px] flex flex-col">
+      <div className="page-header flex-row justify-start items-center gap-6">
         <button onClick={() => navigate("/")} className="btn-secondary btn-medium h-11 gap-2 border-2 border-sage-300">
           <span className="text-xl">←</span>
           <span>Back</span>
         </button>
         <h1 className="page-title">Checkout</h1>
-        <div className="h-11 w-11" />
       </div>
 
       <div className="flex flex-col p-6 gap-5 text-sm">
@@ -226,6 +226,7 @@ const Frame3 = () => {
           </span>
           <span className="text-2xl">→</span>
         </button>
+      </div>
       </div>
     </div>
   );

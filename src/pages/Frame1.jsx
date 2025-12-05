@@ -23,8 +23,9 @@ const Frame1 = () => {
   };
 
   return (
-    <div className="page-container text-center">
-      <div className="page-header flex-row justify-between items-center">
+    <div className="page-container items-center text-center">
+      <div className="w-full max-w-[900px] flex flex-col">
+      <div className="page-header flex-row justify-start items-center gap-6">
         <button
           onClick={() => navigate("/")}
           className="btn-secondary btn-medium h-11 gap-2 border-2 border-sage-300"
@@ -33,7 +34,6 @@ const Frame1 = () => {
           <span>Back</span>
         </button>
         <h1 className="page-title">Customize Drink</h1>
-        <div className="h-11 w-11" />
       </div>
 
       <div className="self-stretch bg-gradient-to-b from-white/60 to-cream-100/80 flex flex-col items-center py-10 px-6 gap-6 text-2xl">
@@ -68,6 +68,7 @@ const Frame1 = () => {
         >
           Add to Order →
         </button>
+      </div>
       </div>
     </div>
   );

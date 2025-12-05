@@ -32,21 +32,19 @@ const HolidayHeader = ({ className = "" }) => {
     <>
       <div
         className={`self-stretch bg-gradient-to-br from-sage-100 via-cream-100 to-pine-50 flex flex-col items-start pt-[2.5rem] px-[1.5rem] pb-[2rem] gap-[1.25rem] text-center text-[1rem] font-inter relative overflow-hidden ${className}`}
+        style={{
+          backgroundImage: 'url(/holiday-pattern.png)',
+          backgroundSize: 'auto',
+          backgroundRepeat: 'repeat',
+          backgroundPosition: 'center',
+          backgroundBlendMode: 'normal',
+          backgroundColor: '#ddf0e6'
+        }}
       >
-        {/* Decorative elements */}
-        <div className="absolute top-4 left-4 text-sage-300 text-[2rem] opacity-40">❄</div>
-        <div className="absolute bottom-8 right-8 text-pine-300 text-[1.5rem] opacity-30">✦</div>
-        <div className="absolute top-12 right-12 text-sage-400 text-[2.5rem] opacity-30">🌿</div>
-        <div className="absolute bottom-4 left-8 text-pine-400 text-[2rem] opacity-35">🌿</div>
-        <div className="absolute top-[40%] left-2 text-sage-300 text-[1.75rem] opacity-25">🍃</div>
-        <div className="absolute top-[30%] right-4 text-pine-300 text-[1.5rem] opacity-30">🍃</div>
+        {/* Semi-transparent overlay to reduce pattern opacity */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-white/50 to-white/60 z-0"></div>
 
         <div className="self-stretch relative z-10">
-          <div className="flex items-start justify-center gap-[2rem] text-sage-500 text-[1.5rem] drop-shadow-sm">
-            <div className="relative animate-pulse">❄</div>
-            <div className="relative text-holiday-gold">✦</div>
-            <div className="relative animate-pulse">❄</div>
-          </div>
           <div
             onClick={handleBaristaClick}
             className="absolute right-0 top-0 h-[2.25rem] w-[2.25rem] rounded-full bg-gradient-to-br from-pine-500 to-pine-600 flex items-center justify-center cursor-pointer hover:from-pine-600 hover:to-pine-700 hover:scale-110 transition-all shadow-lg"
@@ -62,7 +60,9 @@ const HolidayHeader = ({ className = "" }) => {
           src="/fx7Logo.PNG"
         />
       </div>
-      <b className="self-stretch relative text-[1.875rem] text-pine-700 tracking-tight z-10">{`✦ Holiday Coffee House ✦`}</b>
+      <div className="self-stretch flex items-center justify-center z-10">
+        <b className="relative text-[1.875rem] text-pine-700 tracking-tight px-6 py-2 rounded-xl bg-white/90 shadow-lg backdrop-blur-sm">{`✦ Holiday Coffee House ✦`}</b>
+      </div>
     </div>
 
     {/* Password Modal */}
