@@ -138,7 +138,7 @@ const Frame3 = () => {
             <span className="font-semibold">$0.00</span>
           </div>
           <div className="rounded-full bg-sage-50 border border-sage-200 flex items-center justify-center p-3.5 text-center text-sm text-pine-500">
-            <span className="font-semibold">✦ All drinks complimentary this season</span>
+            <span className="font-semibold">✦ All drinks complimentary this season ✦</span>
           </div>
         </div>
 
@@ -152,12 +152,9 @@ const Frame3 = () => {
           </div>
 
           <div className="rounded-xl bg-gradient-to-br from-sage-100 to-pine-100 border-2 border-sage-300 p-6 gap-4 shadow-md">
-            <h3 className="font-bold text-pine-700 text-lg">Local Homeless Shelter</h3>
+            <h3 className="font-bold text-pine-700 text-lg">Feeding America</h3>
             <p className="text-base text-cocoa-600 font-medium leading-relaxed">
-              We provide warm meals, shelter, and essential support services to
-              individuals and families experiencing homelessness in our
-              community. Every donation helps provide hot meals, warm beds, and
-              hope during the cold winter months.
+              Feeding America is the largest hunger-relief organization in the United States. It supports a nationwide network of food banks, food pantries, and meal programs that provide food to millions of children, families, and seniors facing hunger. Through donations, partnerships, and community programs, Feeding America works to reduce food insecurity, rescue surplus food, and create long-term solutions to end hunger in America.
             </p>
           </div>
 

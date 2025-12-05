@@ -49,7 +49,7 @@ const Frame1 = () => {
           {currentDrink?.drinkName || "Peppermint Mocha"}
         </b>
         <div className="px-4 py-2 rounded-full bg-gradient-to-r from-sage-200 to-pine-200 text-lg font-bold text-pine-700 shadow-md">
-          Complimentary ✦
+          ✦ Complimentary ✦
         </div>
       </div>
 
@@ -60,7 +60,7 @@ const Frame1 = () => {
 
       <div className="self-stretch bg-gradient-to-t from-cream-100 to-white/60 flex flex-col items-start pt-6 px-6 pb-10 gap-5 text-sm text-cocoa-600">
         <div className="self-stretch font-semibold text-center text-base">
-          ✦ Your drink is complimentary. Consider donating at checkout.
+          ✦ Your drink is complimentary. Consider donating at checkout. ✦
         </div>
         <button
           onClick={handleAddToOrder}

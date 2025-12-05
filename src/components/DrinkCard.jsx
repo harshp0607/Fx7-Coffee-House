@@ -30,7 +30,7 @@ const DrinkCard1 = ({ className = "", image, drinkName, description }) => {
           {description}
         </div>
         <div className="mt-1 px-3 py-1 rounded-full bg-gradient-to-r from-sage-100 to-pine-100 text-[0.813rem] font-bold text-pine-600 shadow-sm">
-          Complimentary ✦
+        ✦ Complimentary ✦
         </div>
       </div>
     </div>

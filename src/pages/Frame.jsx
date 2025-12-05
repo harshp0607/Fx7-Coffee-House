@@ -15,12 +15,12 @@ const Frame = () => {
         {/* Donation Counter */}
         <div className="self-stretch flex items-center justify-center py-[2rem] px-[1.5rem] sm:px-[1rem] md:px-[2rem] lg:px-[3rem]">
           <div className="w-full max-w-md shadow-2xl rounded-2xl bg-gradient-to-br from-pine-500 via-pine-600 to-pine-700 border-3 border-pine-800 flex flex-col items-center p-[2.5rem] gap-[1rem]">
-            <div className="text-white text-[0.938rem] font-bold tracking-wide uppercase opacity-90">Total Raised for Shelter</div>
+            <div className="text-white text-[0.938rem] font-bold tracking-wide uppercase opacity-90">Total Raised for Feeding America</div>
             <div className="text-white text-[4rem] font-black drop-shadow-2xl tracking-tight">
               ${totalDonations.toFixed(2)}
             </div>
             <div className="text-cream-100 text-[0.938rem] font-medium text-center leading-relaxed">
-              Every donation provides warm meals and shelter
+              Every donation provides warm meals to those in need
             </div>
           </div>
         </div>
