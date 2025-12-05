@@ -13,7 +13,6 @@ import {
   getDocs
 } from "firebase/firestore";
 import { db } from "../firebase";
-import { showOrderReadyNotification } from "../utils/notifications";
 
 const OrderContext = createContext();
 
@@ -156,9 +155,6 @@ export const OrderProvider = ({ children }) => {
           completedAt: serverTimestamp(),
           donationVerified: false, // Mark as not yet verified
         });
-
-        // Show notification that order is ready
-        showOrderReadyNotification(orderToComplete);
       }
 
       // Remove from active orders

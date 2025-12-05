@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import HolidayHeader from "../components/HolidayHeader";
 import DrinksGrid from "../components/DrinksGrid";
-import NotificationPrompt from "../components/NotificationPrompt";
 import { useOrder } from "../context/OrderContext";
 
 const Frame = () => {
@@ -42,7 +41,6 @@ const Frame = () => {
           </div>
         </div>
       </div>
-      <NotificationPrompt />
     </div>
   );
 };
