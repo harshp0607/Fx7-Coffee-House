@@ -61,7 +61,7 @@ const HolidayHeader = ({ className = "" }) => {
         />
       </div>
       <div className="self-stretch flex items-center justify-center z-10">
-        <b className="relative text-[1.875rem] text-pine-700 tracking-tight px-6 py-2 rounded-xl bg-white/90 shadow-lg backdrop-blur-sm">{`✦ Holiday Coffee House ✦`}</b>
+        <b className="relative text-[1.375rem] md:text-[1.875rem] text-pine-700 tracking-tight px-4 py-2 rounded-xl bg-white/90 shadow-lg backdrop-blur-sm">{`✦ Holiday Coffee House ✦`}</b>
       </div>
     </div>
 

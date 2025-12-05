@@ -13,6 +13,7 @@ import {
   getDocs
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { requestNotificationPermission } from "../utils/notifications";
 
 const OrderContext = createContext();
 
@@ -122,12 +123,16 @@ export const OrderProvider = ({ children }) => {
 
   const submitOrder = async (userInfo, donation) => {
     try {
+      // Request notification permission and get FCM token
+      const fcmToken = await requestNotificationPermission();
+
       const newOrder = {
         items: [...orders],
         userInfo,
         donation,
         time: "Just now",
         timestamp: serverTimestamp(),
+        fcmToken: fcmToken || null, // Store FCM token with the order
       };
       const docRef = await addDoc(collection(db, "orders"), newOrder);
       clearOrders();
