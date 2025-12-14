@@ -8,7 +8,6 @@ const Navigation = () => {
 
   const menuItems = [
     { path: "/", label: "Home", icon: "🏠" },
-    { path: "/customize", label: "Order Coffee", icon: "☕" },
     { path: "/checkout", label: "Checkout", icon: "🛒" },
     { path: "/my-orders", label: "My Orders & Reviews", icon: "📋" },
     { path: "/dashboard", label: "Barista Dashboard", icon: "👨‍🍳" },

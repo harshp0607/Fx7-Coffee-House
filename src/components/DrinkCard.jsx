@@ -8,7 +8,7 @@ const DrinkCard1 = ({ className = "", image, drinkName, description }) => {
 
   const handleClick = () => {
     selectDrink({ image, drinkName, description });
-    navigate("/frame");
+    navigate("/customize");
   };
 
   return (

@@ -5,7 +5,9 @@
       "Bash(npm install)",
       "Bash(npm start)",
       "Bash(npm install:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(ls:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []

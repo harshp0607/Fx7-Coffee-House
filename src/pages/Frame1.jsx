@@ -18,7 +18,7 @@ const Frame1 = () => {
         ...currentDrink,
         ...customization,
       });
-      navigate("/frame2");
+      navigate("/checkout");
     }
   };
 
