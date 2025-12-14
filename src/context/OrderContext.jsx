@@ -10,7 +10,9 @@ import {
   query,
   serverTimestamp,
   updateDoc,
-  getDocs
+  getDocs,
+  where,
+  writeBatch
 } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -55,7 +57,12 @@ export const OrderProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    const q = query(collection(db, "completedOrders"), orderBy("completedAt", "desc"));
+    const q = query(
+      collection(db, "completedOrders"),
+      where("archived", "!=", true),
+      orderBy("archived"),
+      orderBy("completedAt", "desc")
+    );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const today = new Date();
@@ -74,7 +81,12 @@ export const OrderProvider = ({ children }) => {
 
   // Listen to all completed orders
   useEffect(() => {
-    const q = query(collection(db, "completedOrders"), orderBy("completedAt", "desc"));
+    const q = query(
+      collection(db, "completedOrders"),
+      where("archived", "!=", true),
+      orderBy("archived"),
+      orderBy("completedAt", "desc")
+    );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const allOrders = snapshot.docs.map((doc) => ({
@@ -97,7 +109,10 @@ export const OrderProvider = ({ children }) => {
 
   // Listen to verified donations total
   useEffect(() => {
-    const q = query(collection(db, "verifiedDonations"));
+    const q = query(
+      collection(db, "verifiedDonations"),
+      where("archived", "!=", true)
+    );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const total = snapshot.docs.reduce((sum, doc) => {
@@ -155,6 +170,32 @@ export const OrderProvider = ({ children }) => {
           completedAt: serverTimestamp(),
           donationVerified: false, // Mark as not yet verified
         });
+
+        // Send SMS notification if phone number is provided
+        if (orderToComplete.userInfo?.phone) {
+          try {
+            const response = await fetch('/api/send-sms', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                phoneNumber: orderToComplete.userInfo.phone,
+                customerName: orderToComplete.userInfo.name,
+                orderItems: orderToComplete.items
+              })
+            });
+
+            if (!response.ok) {
+              console.error('Failed to send SMS notification');
+            } else {
+              console.log('SMS notification sent successfully');
+            }
+          } catch (smsError) {
+            // Don't fail the order completion if SMS fails
+            console.error('Error sending SMS:', smsError);
+          }
+        }
       }
 
       // Remove from active orders
@@ -193,54 +234,144 @@ export const OrderProvider = ({ children }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const q = query(collection(db, "completedOrders"), orderBy("completedAt", "desc"));
+      const q = query(
+        collection(db, "completedOrders"),
+        where("archived", "!=", true),
+        orderBy("archived"),
+        orderBy("completedAt", "desc")
+      );
       const snapshot = await getDocs(q);
 
-      const deletePromises = snapshot.docs
+      const batch = writeBatch(db);
+
+      snapshot.docs
         .filter((docSnapshot) => {
           const completedAt = docSnapshot.data().completedAt?.toDate();
           return completedAt && completedAt >= today;
         })
-        .map((docToDelete) => deleteDoc(doc(db, "completedOrders", docToDelete.id)));
+        .forEach((docToArchive) => {
+          batch.update(doc(db, "completedOrders", docToArchive.id), {
+            archived: true,
+            archivedAt: serverTimestamp()
+          });
+        });
 
-      await Promise.all(deletePromises);
+      await batch.commit();
       return true;
     } catch (error) {
-      console.error("Error clearing completed today:", error);
+      console.error("Error archiving completed today:", error);
       throw error;
     }
   };
 
   const clearTotalDonations = async () => {
     try {
-      const q = query(collection(db, "verifiedDonations"));
+      const q = query(
+        collection(db, "verifiedDonations"),
+        where("archived", "!=", true)
+      );
       const snapshot = await getDocs(q);
 
-      const deletePromises = snapshot.docs.map((docToDelete) =>
-        deleteDoc(doc(db, "verifiedDonations", docToDelete.id))
-      );
+      const batch = writeBatch(db);
 
-      await Promise.all(deletePromises);
+      snapshot.docs.forEach((docToArchive) => {
+        batch.update(doc(db, "verifiedDonations", docToArchive.id), {
+          archived: true,
+          archivedAt: serverTimestamp()
+        });
+      });
+
+      await batch.commit();
       return true;
     } catch (error) {
-      console.error("Error clearing total donations:", error);
+      console.error("Error archiving total donations:", error);
       throw error;
     }
   };
 
   const clearAllHistory = async () => {
     try {
-      const q = query(collection(db, "completedOrders"));
+      const q = query(
+        collection(db, "completedOrders"),
+        where("archived", "!=", true)
+      );
       const snapshot = await getDocs(q);
 
-      const deletePromises = snapshot.docs.map((docToDelete) =>
-        deleteDoc(doc(db, "completedOrders", docToDelete.id))
-      );
+      const batch = writeBatch(db);
 
-      await Promise.all(deletePromises);
+      snapshot.docs.forEach((docToArchive) => {
+        batch.update(doc(db, "completedOrders", docToArchive.id), {
+          archived: true,
+          archivedAt: serverTimestamp()
+        });
+      });
+
+      await batch.commit();
       return true;
     } catch (error) {
-      console.error("Error clearing all history:", error);
+      console.error("Error archiving all history:", error);
+      throw error;
+    }
+  };
+
+  const getOrdersByPhone = async (phoneNumber) => {
+    try {
+      const q = query(
+        collection(db, "completedOrders"),
+        orderBy("completedAt", "desc")
+      );
+      const snapshot = await getDocs(q);
+
+      const userOrders = snapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          completedAt: doc.data().completedAt?.toDate(),
+        }))
+        .filter((order) => order.userInfo?.phone === phoneNumber);
+
+      return userOrders;
+    } catch (error) {
+      console.error("Error fetching orders by phone:", error);
+      throw error;
+    }
+  };
+
+  const submitReview = async (orderId, rating, comment) => {
+    try {
+      const orderRef = doc(db, "completedOrders", orderId);
+      await updateDoc(orderRef, {
+        rating,
+        reviewComment: comment,
+        reviewedAt: serverTimestamp()
+      });
+      return true;
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      throw error;
+    }
+  };
+
+  const getAllReviews = async () => {
+    try {
+      const q = query(
+        collection(db, "completedOrders"),
+        orderBy("completedAt", "desc")
+      );
+      const snapshot = await getDocs(q);
+
+      const reviewedOrders = snapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          completedAt: doc.data().completedAt?.toDate(),
+          reviewedAt: doc.data().reviewedAt?.toDate(),
+        }))
+        .filter((order) => order.rating !== undefined);
+
+      return reviewedOrders;
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
       throw error;
     }
   };
@@ -263,6 +394,9 @@ export const OrderProvider = ({ children }) => {
     clearCompletedToday,
     clearTotalDonations,
     clearAllHistory,
+    getOrdersByPhone,
+    submitReview,
+    getAllReviews,
     orderCount: orders.length,
   };
 

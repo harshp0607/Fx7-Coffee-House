@@ -1,24 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useOrder } from "../context/OrderContext";
+import StarRating from "../components/StarRating";
 
 const Frame2 = () => {
   const navigate = useNavigate();
-  const { submittedOrders, completedToday, pendingDonations, totalDonations, allCompletedOrders, markOrderAsReady, verifyDonation, clearCompletedToday, clearTotalDonations, clearAllHistory } = useOrder();
+  const { submittedOrders, completedToday, pendingDonations, totalDonations, allCompletedOrders, markOrderAsReady, verifyDonation, clearCompletedToday, clearTotalDonations, clearAllHistory, getAllReviews } = useOrder();
   const [activeTab, setActiveTab] = useState("active");
   const [expandedOrderId, setExpandedOrderId] = useState(null);
+  const [allReviews, setAllReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === "reviews") {
+      loadReviews();
+    }
+  }, [activeTab]);
+
+  const loadReviews = async () => {
+    setReviewsLoading(true);
+    try {
+      const reviews = await getAllReviews();
+      setAllReviews(reviews);
+    } catch (error) {
+      console.error("Error loading reviews:", error);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
 
   return (
     <div className="page-container items-center">
       <div className="w-full max-w-[1600px] flex flex-col">
       <div className="page-header">
-        <div className="flex items-center justify-between gap-5">
-          <h1 className="text-3xl font-black tracking-tight text-pine-800">Barista Dashboard</h1>
-          <button onClick={() => navigate("/")} className="btn-secondary btn-medium h-12 gap-2 border-2 border-sage-300">
-            <span className="text-xl">←</span>
-            <span>Home</span>
-          </button>
-        </div>
+        <h1 className="text-3xl font-black tracking-tight text-pine-800">Barista Dashboard</h1>
 
         {/* Stats Cards */}
         <div className="flex items-start gap-4 text-3xl">
@@ -85,6 +100,12 @@ const Frame2 = () => {
             className={`flex-1 tab ${activeTab === "history" ? "bg-blue-600 text-white shadow-md" : "bg-white/50 text-blue-600 hover:bg-white/80"}`}
           >
             History ({allCompletedOrders.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("reviews")}
+            className={`flex-1 tab ${activeTab === "reviews" ? "bg-purple-600 text-white shadow-md" : "bg-white/50 text-purple-600 hover:bg-white/80"}`}
+          >
+            Reviews ({allReviews.length})
           </button>
         </div>
       </div>
@@ -268,6 +289,76 @@ const Frame2 = () => {
                 ))
               )}
             </div>
+          </>
+        )}
+
+        {/* Reviews Tab */}
+        {activeTab === "reviews" && (
+          <>
+            <div className="flex items-center justify-between gap-5 px-2 w-full">
+              <b className="section-title">Customer Reviews</b>
+              <div className="badge bg-purple-600 text-white px-4 py-2">
+                <b>{allReviews.length} Reviews</b>
+              </div>
+            </div>
+
+            {reviewsLoading ? (
+              <div className="flex items-center justify-center py-16 text-lg text-cocoa-500 font-semibold">
+                Loading reviews...
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3 w-full text-sm">
+                {allReviews.length === 0 ? (
+                  <div className="flex items-center justify-center py-16 text-lg text-cocoa-500 font-semibold">
+                    No reviews yet.
+                  </div>
+                ) : (
+                  allReviews.map((review) => (
+                    <div key={review.id} className="card border-purple-200 flex flex-col p-5 gap-3">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="font-bold text-base text-pine-700">{review.userInfo.name}</div>
+                          <div className="text-xs text-cocoa-400 mt-0.5">
+                            Order: {review.completedAt?.toLocaleString() || "Unknown time"}
+                          </div>
+                          {review.reviewedAt && (
+                            <div className="text-xs text-cocoa-400">
+                              Reviewed: {review.reviewedAt?.toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <StarRating rating={review.rating} readOnly={true} />
+                          {review.archived && (
+                            <div className="badge bg-gray-500 text-white px-2 py-1 text-xs">
+                              Archived
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Order Items */}
+                      <div className="border-t border-purple-100 pt-2 flex flex-col gap-1.5">
+                        <div className="font-semibold text-xs text-cocoa-600">Order Items:</div>
+                        {review.items.map((item, idx) => (
+                          <div key={idx} className="text-xs text-cocoa-500">
+                            • {item.drinkName} ({item.temperature} · {item.milkType})
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Review Comment */}
+                      {review.reviewComment && (
+                        <div className="rounded-lg bg-purple-50 border border-purple-200 p-3">
+                          <div className="font-semibold text-xs text-purple-700 mb-1">Comment:</div>
+                          <p className="text-sm text-cocoa-600 italic">{review.reviewComment}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </>
         )}
       </div>

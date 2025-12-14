@@ -25,14 +25,7 @@ const Frame1 = () => {
   return (
     <div className="page-container items-center text-center">
       <div className="w-full max-w-[900px] flex flex-col">
-      <div className="page-header flex-row justify-start items-center gap-6">
-        <button
-          onClick={() => navigate("/")}
-          className="btn-secondary btn-medium h-11 gap-2 border-2 border-sage-300"
-        >
-          <span className="text-xl">←</span>
-          <span>Back</span>
-        </button>
+      <div className="page-header">
         <h1 className="page-title">Customize Drink</h1>
       </div>
 

@@ -11,6 +11,7 @@ const Frame3 = () => {
     name: "",
     phone: "",
   });
+  const [smsConsent, setSmsConsent] = useState(false);
 
   const handleDonationSelect = (amount) => {
     setSelectedDonation(amount);
@@ -53,6 +54,10 @@ const Frame3 = () => {
       alert("Please fill in your name and phone number!");
       return;
     }
+    if (!smsConsent) {
+      alert("Please consent to receive SMS notifications about your order!");
+      return;
+    }
 
     const donation = getDonationAmount();
 
@@ -80,11 +85,7 @@ const Frame3 = () => {
   return (
     <div className="page-container items-center">
       <div className="w-full max-w-[900px] flex flex-col">
-      <div className="page-header flex-row justify-start items-center gap-6">
-        <button onClick={() => navigate("/")} className="btn-secondary btn-medium h-11 gap-2 border-2 border-sage-300">
-          <span className="text-xl">←</span>
-          <span>Back</span>
-        </button>
+      <div className="page-header">
         <h1 className="page-title">Checkout</h1>
       </div>
 
@@ -111,9 +112,18 @@ const Frame3 = () => {
               placeholder="Enter your phone number"
               className={inputClass}
             />
-            <p className="text-sm text-cocoa-500 font-medium">
-              We'll text you when your order is ready
-            </p>
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="smsConsent"
+                checked={smsConsent}
+                onChange={(e) => setSmsConsent(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded border-2 border-cocoa-400 text-pine-600 focus:ring-2 focus:ring-pine-500 cursor-pointer flex-shrink-0"
+              />
+              <label htmlFor="smsConsent" className="text-sm text-cocoa-600 leading-relaxed cursor-pointer">
+                By checking this box, you agree to receive order status notifications from FX7 Coffee House at the phone number provided.
+              </label>
+            </div>
           </div>
         </div>
 

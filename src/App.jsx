@@ -6,10 +6,12 @@ import {
   useLocation,
 } from "react-router-dom";
 import { OrderProvider } from "./context/OrderContext";
+import Navigation from "./components/Navigation";
 import Frame from "./pages/Frame";
 import Frame1 from "./pages/Frame1";
-import Frame2 from "./pages/Frame2";
+import DashboardLogin from "./pages/DashboardLogin";
 import Frame3 from "./pages/Frame3";
+import MyOrders from "./pages/MyOrders";
 
 function App() {
   const action = useNavigationType();
@@ -61,11 +63,13 @@ function App() {
 
   return (
     <OrderProvider>
+      <Navigation />
       <Routes>
         <Route path="/" element={<Frame />} />
-        <Route path="/frame" element={<Frame1 />} />
-        <Route path="/frame1" element={<Frame2 />} />
-        <Route path="/frame2" element={<Frame3 />} />
+        <Route path="/customize" element={<Frame1 />} />
+        <Route path="/dashboard" element={<DashboardLogin />} />
+        <Route path="/checkout" element={<Frame3 />} />
+        <Route path="/my-orders" element={<MyOrders />} />
       </Routes>
     </OrderProvider>
   );

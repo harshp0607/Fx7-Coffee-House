@@ -31,7 +31,7 @@ const Frame = () => {
         </div>
         <div className="self-stretch bg-gradient-to-t from-cream-100 to-white/60 flex flex-col items-start pt-[1.5rem] px-[1.5rem] sm:px-[1rem] md:px-[2rem] lg:px-[3rem] pb-[2.5rem] text-[1rem] text-white">
           <div
-            onClick={() => navigate("/frame2")}
+            onClick={() => navigate("/checkout")}
             className="self-stretch shadow-xl rounded-2xl bg-gradient-to-r from-pine-500 to-pine-600 flex items-center justify-between py-[1.375rem] px-[2rem] gap-[1.25rem] cursor-pointer hover:from-pine-600 hover:to-pine-700 hover:shadow-2xl hover:scale-[1.02] transition-all"
           >
             <div className="flex items-center gap-2">
