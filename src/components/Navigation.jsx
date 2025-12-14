@@ -44,8 +44,18 @@ const Navigation = () => {
               </div>
             </button>
 
-            {/* Logo/Title */}
-            <h1 className="text-white text-xl font-black tracking-tight">FX7 Coffee House</h1>
+            {/* Logo/Title - Clickable to navigate home */}
+            <div
+              onClick={() => handleNavigate("/")}
+              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+            >
+              <img
+                className="h-10 w-10 rounded-full object-cover shadow-lg ring-2 ring-white"
+                alt="FX7 Logo"
+                src="/fx7Logo.PNG"
+              />
+              <h1 className="text-white text-xl font-black tracking-tight">FX7 Coffee House</h1>
+            </div>
           </div>
 
           {/* Current Page Indicator (hidden on mobile) */}
