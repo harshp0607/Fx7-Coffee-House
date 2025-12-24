@@ -1,17 +1,29 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useOrder } from "../context/OrderContext";
 import StarRating from "../components/StarRating";
 
 const MyOrders = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { getOrdersByPhone, submitReview } = useOrder();
-  const [phoneNumber, setPhoneNumber] = useState("");
+
+  // Check for phone from navigation state or localStorage
+  const initialPhone = location.state?.phoneNumber || localStorage.getItem("fx7_user_phone") || "";
+
+  const [phoneNumber, setPhoneNumber] = useState(initialPhone);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [reviewingOrderId, setReviewingOrderId] = useState(null);
   const [reviewData, setReviewData] = useState({ rating: 0, comment: "" });
+
+  // Auto-search if phone number is pre-filled
+  useEffect(() => {
+    if (initialPhone && !hasSearched) {
+      handleSearch();
+    }
+  }, [initialPhone]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const inputClass = "w-full rounded-xl bg-gradient-to-r from-cream-100 to-sage-50 border-2 border-sage-300 py-4 px-5 text-lg text-pine-700 font-medium placeholder:text-cocoa-400 outline-none focus:border-pine-500 focus:bg-white focus:shadow-lg transition-all";
 
@@ -66,7 +78,20 @@ const MyOrders = () => {
       setReviewData({ rating: 0, comment: "" });
     } catch (error) {
       console.error("Error submitting review:", error);
-      alert("Failed to submit review. Please try again.");
+
+      // Provide more specific error messages
+      let errorMessage = "Failed to submit review. ";
+      if (error.code === "permission-denied") {
+        errorMessage += "You don't have permission to submit reviews for this order.";
+      } else if (error.message?.includes("not found")) {
+        errorMessage += "This order could not be found.";
+      } else if (error.code === "unavailable") {
+        errorMessage += "Network error. Please check your connection and try again.";
+      } else {
+        errorMessage += "Please try again.";
+      }
+
+      alert(errorMessage);
     }
   };
 

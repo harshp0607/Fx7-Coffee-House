@@ -34,6 +34,7 @@ export const OrderProvider = ({ children }) => {
   const [pendingDonations, setPendingDonations] = useState([]);
   const [totalDonations, setTotalDonations] = useState(0);
   const [allCompletedOrders, setAllCompletedOrders] = useState([]);
+  const [outOfStockDrinks, setOutOfStockDrinks] = useState([]);
 
   useEffect(() => {
     const q = query(collection(db, "orders"), orderBy("timestamp", "desc"));
@@ -45,12 +46,6 @@ export const OrderProvider = ({ children }) => {
         timestamp: doc.data().timestamp?.toDate(),
       }));
       setSubmittedOrders(ordersData);
-
-      // Filter for pending donations from active orders
-      const activeDonations = ordersData.filter(
-        (order) => order.donation > 0
-      );
-      setPendingDonations(activeDonations);
     });
 
     return () => unsubscribe();
@@ -59,8 +54,6 @@ export const OrderProvider = ({ children }) => {
   useEffect(() => {
     const q = query(
       collection(db, "completedOrders"),
-      where("archived", "!=", true),
-      orderBy("archived"),
       orderBy("completedAt", "desc")
     );
 
@@ -69,10 +62,12 @@ export const OrderProvider = ({ children }) => {
       today.setHours(0, 0, 0, 0);
 
       const todayCount = snapshot.docs.filter((doc) => {
-        const completedAt = doc.data().completedAt?.toDate();
-        return completedAt && completedAt >= today;
+        const data = doc.data();
+        const completedAt = data.completedAt?.toDate();
+        return completedAt && completedAt >= today && !data.archived;
       }).length;
 
+      console.log("Completed today count:", todayCount);
       setCompletedToday(todayCount);
     });
 
@@ -83,24 +78,27 @@ export const OrderProvider = ({ children }) => {
   useEffect(() => {
     const q = query(
       collection(db, "completedOrders"),
-      where("archived", "!=", true),
-      orderBy("archived"),
       orderBy("completedAt", "desc")
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const allOrders = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        completedAt: doc.data().completedAt?.toDate(),
-      }));
+      const allOrders = snapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          completedAt: doc.data().completedAt?.toDate(),
+        }))
+        .filter((order) => !order.archived); // Filter archived orders in memory
 
+      console.log("All completed orders loaded:", allOrders.length);
       setAllCompletedOrders(allOrders);
 
-      // Filter for pending donations
+      // Filter for pending donations (completed orders with unverified donations)
       const donations = allOrders.filter(
         (order) => order.donation > 0 && !order.donationVerified
       );
+      console.log("Pending donations to verify:", donations.length);
+      console.log("Pending donation IDs:", donations.map(d => ({ id: d.id, name: d.userInfo?.name, amount: d.donation })));
       setPendingDonations(donations);
     });
 
@@ -111,15 +109,34 @@ export const OrderProvider = ({ children }) => {
   useEffect(() => {
     const q = query(
       collection(db, "verifiedDonations"),
-      where("archived", "!=", true)
+      orderBy("verifiedAt", "desc")
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const total = snapshot.docs.reduce((sum, doc) => {
-        return sum + (doc.data().amount || 0);
-      }, 0);
+      const total = snapshot.docs
+        .filter((doc) => !doc.data().archived)
+        .reduce((sum, doc) => {
+          return sum + (doc.data().amount || 0);
+        }, 0);
 
+      console.log("Total verified donations:", total);
       setTotalDonations(total);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Listen to inventory status
+  useEffect(() => {
+    const q = query(collection(db, "inventory"));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const outOfStock = snapshot.docs
+        .filter((doc) => doc.data().inStock === false)
+        .map((doc) => doc.data().drinkName);
+
+      console.log("Out of stock drinks:", outOfStock);
+      setOutOfStockDrinks(outOfStock);
     });
 
     return () => unsubscribe();
@@ -143,16 +160,18 @@ export const OrderProvider = ({ children }) => {
 
   const submitOrder = async (userInfo, donation) => {
     try {
+      const submittedAt = new Date(); // Store client-side timestamp for immediate access
       const newOrder = {
         items: [...orders],
         userInfo,
         donation,
         time: "Just now",
-        timestamp: serverTimestamp(),
+        timestamp: serverTimestamp(), // Server timestamp for ordering
+        submittedAt: submittedAt, // Client timestamp for calculation
       };
       const docRef = await addDoc(collection(db, "orders"), newOrder);
       clearOrders();
-      return { id: docRef.id, ...newOrder };
+      return { id: docRef.id, ...newOrder, submittedAt };
     } catch (error) {
       console.error("Error submitting order:", error);
       throw error;
@@ -163,38 +182,56 @@ export const OrderProvider = ({ children }) => {
     try {
       const orderToComplete = submittedOrders.find((order) => order.id === orderId);
 
-      if (orderToComplete) {
-        // Move order to completedOrders collection
-        await addDoc(collection(db, "completedOrders"), {
-          ...orderToComplete,
-          completedAt: serverTimestamp(),
-          donationVerified: false, // Mark as not yet verified
-        });
+      if (!orderToComplete) {
+        console.error("Order not found in submittedOrders:", orderId);
+        throw new Error(`Order ${orderId} not found in active orders`);
+      }
 
-        // Send SMS notification if phone number is provided
-        if (orderToComplete.userInfo?.phone) {
-          try {
-            const response = await fetch('/api/send-sms', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                phoneNumber: orderToComplete.userInfo.phone,
-                customerName: orderToComplete.userInfo.name,
-                orderItems: orderToComplete.items
-              })
-            });
+      console.log("Marking order as ready:", orderId, "User info:", orderToComplete.userInfo);
+      console.log("Order has donation:", orderToComplete.donation);
 
-            if (!response.ok) {
-              console.error('Failed to send SMS notification');
-            } else {
-              console.log('SMS notification sent successfully');
-            }
-          } catch (smsError) {
-            // Don't fail the order completion if SMS fails
-            console.error('Error sending SMS:', smsError);
+      // Move order to completedOrders collection
+      // Remove the old 'id' field before spreading to avoid confusion
+      const { id: oldId, timestamp, ...orderData } = orderToComplete;
+
+      const dataToSave = {
+        ...orderData,
+        completedAt: serverTimestamp(),
+        donationVerified: false, // Mark as not yet verified
+        archived: false, // Explicitly set archived status
+      };
+
+      console.log("Saving to completedOrders:", dataToSave);
+
+      const docRef = await addDoc(collection(db, "completedOrders"), dataToSave);
+
+      console.log("✅ SUCCESS! Order moved to completedOrders with NEW ID:", docRef.id);
+      console.log("Old order ID was:", oldId);
+      console.log("Document path:", `completedOrders/${docRef.id}`);
+
+      // Send SMS notification if phone number is provided
+      if (orderToComplete.userInfo?.phone) {
+        try {
+          const response = await fetch('/api/send-sms', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              phoneNumber: orderToComplete.userInfo.phone,
+              customerName: orderToComplete.userInfo.name,
+              orderItems: orderToComplete.items
+            })
+          });
+
+          if (!response.ok) {
+            console.error('Failed to send SMS notification');
+          } else {
+            console.log('SMS notification sent successfully');
           }
+        } catch (smsError) {
+          // Don't fail the order completion if SMS fails
+          console.error('Error sending SMS:', smsError);
         }
       }
 
@@ -208,8 +245,25 @@ export const OrderProvider = ({ children }) => {
 
   const verifyDonation = async (orderId, amount, customerName) => {
     try {
-      // Mark the order's donation as verified first
+      console.log("Verifying donation:", { orderId, amount, customerName });
+
+      // Check if the document exists first
       const orderRef = doc(db, "completedOrders", orderId);
+      const orderDoc = await getDocs(query(collection(db, "completedOrders")));
+
+      console.log("All completed order IDs:", orderDoc.docs.map(d => d.id));
+      console.log("Looking for order ID:", orderId);
+
+      const exists = orderDoc.docs.some(d => d.id === orderId);
+
+      if (!exists) {
+        console.error("Document not found in completedOrders collection!");
+        console.error("Order ID:", orderId);
+        console.error("Available IDs:", orderDoc.docs.map(d => d.id));
+        throw new Error(`Order document ${orderId} not found in completedOrders collection`);
+      }
+
+      // Mark the order's donation as verified
       await updateDoc(orderRef, {
         donationVerified: true,
       });
@@ -220,11 +274,15 @@ export const OrderProvider = ({ children }) => {
         amount,
         customerName,
         verifiedAt: serverTimestamp(),
+        archived: false, // Explicitly set archived status
       });
 
+      console.log("Donation verified successfully");
       return true;
     } catch (error) {
       console.error("Error verifying donation:", error);
+      console.error("Error code:", error.code);
+      console.error("Error message:", error.message);
       throw error;
     }
   };
@@ -236,8 +294,6 @@ export const OrderProvider = ({ children }) => {
 
       const q = query(
         collection(db, "completedOrders"),
-        where("archived", "!=", true),
-        orderBy("archived"),
         orderBy("completedAt", "desc")
       );
       const snapshot = await getDocs(q);
@@ -246,8 +302,9 @@ export const OrderProvider = ({ children }) => {
 
       snapshot.docs
         .filter((docSnapshot) => {
-          const completedAt = docSnapshot.data().completedAt?.toDate();
-          return completedAt && completedAt >= today;
+          const data = docSnapshot.data();
+          const completedAt = data.completedAt?.toDate();
+          return completedAt && completedAt >= today && !data.archived;
         })
         .forEach((docToArchive) => {
           batch.update(doc(db, "completedOrders", docToArchive.id), {
@@ -257,6 +314,7 @@ export const OrderProvider = ({ children }) => {
         });
 
       await batch.commit();
+      console.log("Cleared completed orders from today");
       return true;
     } catch (error) {
       console.error("Error archiving completed today:", error);
@@ -268,20 +326,23 @@ export const OrderProvider = ({ children }) => {
     try {
       const q = query(
         collection(db, "verifiedDonations"),
-        where("archived", "!=", true)
+        orderBy("verifiedAt", "desc")
       );
       const snapshot = await getDocs(q);
 
       const batch = writeBatch(db);
 
-      snapshot.docs.forEach((docToArchive) => {
-        batch.update(doc(db, "verifiedDonations", docToArchive.id), {
-          archived: true,
-          archivedAt: serverTimestamp()
+      snapshot.docs
+        .filter((docSnapshot) => !docSnapshot.data().archived)
+        .forEach((docToArchive) => {
+          batch.update(doc(db, "verifiedDonations", docToArchive.id), {
+            archived: true,
+            archivedAt: serverTimestamp()
+          });
         });
-      });
 
       await batch.commit();
+      console.log("Cleared all verified donations");
       return true;
     } catch (error) {
       console.error("Error archiving total donations:", error);
@@ -293,20 +354,23 @@ export const OrderProvider = ({ children }) => {
     try {
       const q = query(
         collection(db, "completedOrders"),
-        where("archived", "!=", true)
+        orderBy("completedAt", "desc")
       );
       const snapshot = await getDocs(q);
 
       const batch = writeBatch(db);
 
-      snapshot.docs.forEach((docToArchive) => {
-        batch.update(doc(db, "completedOrders", docToArchive.id), {
-          archived: true,
-          archivedAt: serverTimestamp()
+      snapshot.docs
+        .filter((docSnapshot) => !docSnapshot.data().archived)
+        .forEach((docToArchive) => {
+          batch.update(doc(db, "completedOrders", docToArchive.id), {
+            archived: true,
+            archivedAt: serverTimestamp()
+          });
         });
-      });
 
       await batch.commit();
+      console.log("Cleared all order history");
       return true;
     } catch (error) {
       console.error("Error archiving all history:", error);
@@ -316,11 +380,15 @@ export const OrderProvider = ({ children }) => {
 
   const getOrdersByPhone = async (phoneNumber) => {
     try {
+      console.log("Fetching orders for phone:", phoneNumber);
+
       const q = query(
         collection(db, "completedOrders"),
         orderBy("completedAt", "desc")
       );
       const snapshot = await getDocs(q);
+
+      console.log("Total completed orders in database:", snapshot.docs.length);
 
       const userOrders = snapshot.docs
         .map((doc) => ({
@@ -328,8 +396,15 @@ export const OrderProvider = ({ children }) => {
           ...doc.data(),
           completedAt: doc.data().completedAt?.toDate(),
         }))
-        .filter((order) => order.userInfo?.phone === phoneNumber);
+        .filter((order) => {
+          const matches = order.userInfo?.phone === phoneNumber;
+          if (!matches) {
+            console.log("Order phone mismatch:", order.userInfo?.phone, "vs", phoneNumber);
+          }
+          return matches;
+        });
 
+      console.log("Filtered orders for user:", userOrders.length);
       return userOrders;
     } catch (error) {
       console.error("Error fetching orders by phone:", error);
@@ -339,15 +414,26 @@ export const OrderProvider = ({ children }) => {
 
   const submitReview = async (orderId, rating, comment) => {
     try {
+      console.log("Submitting review:", { orderId, rating, comment });
       const orderRef = doc(db, "completedOrders", orderId);
+
+      // Check if document exists first
+      const orderSnapshot = await getDocs(query(collection(db, "completedOrders"), where("__name__", "==", orderId)));
+      if (orderSnapshot.empty) {
+        throw new Error(`Order with ID ${orderId} not found in completedOrders collection`);
+      }
+
       await updateDoc(orderRef, {
         rating,
         reviewComment: comment,
         reviewedAt: serverTimestamp()
       });
+      console.log("Review submitted successfully");
       return true;
     } catch (error) {
       console.error("Error submitting review:", error);
+      console.error("Error code:", error.code);
+      console.error("Error message:", error.message);
       throw error;
     }
   };
@@ -376,6 +462,148 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
+  const toggleDrinkStock = async (drinkName, inStock) => {
+    try {
+      console.log("Toggling stock for:", drinkName, "to:", inStock);
+
+      // Check if inventory document exists for this drink
+      const q = query(collection(db, "inventory"), where("drinkName", "==", drinkName));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        // Create new inventory document
+        await addDoc(collection(db, "inventory"), {
+          drinkName,
+          inStock,
+          updatedAt: serverTimestamp(),
+        });
+        console.log("Created inventory record for:", drinkName);
+      } else {
+        // Update existing document
+        const docRef = doc(db, "inventory", snapshot.docs[0].id);
+        await updateDoc(docRef, {
+          inStock,
+          updatedAt: serverTimestamp(),
+        });
+        console.log("Updated inventory record for:", drinkName);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error toggling drink stock:", error);
+      throw error;
+    }
+  };
+
+  const getEstimatedWaitTime = () => {
+    try {
+      // Get the 5 most recent completed orders
+      const recentCompletedOrders = allCompletedOrders.slice(0, 5);
+
+      let avgPrepTimeMinutes = 5; // Default fallback
+      let calculatedFromActualData = false;
+
+      // Calculate actual average prep time from recent orders
+      if (recentCompletedOrders.length > 0) {
+        const prepTimes = [];
+
+        recentCompletedOrders.forEach(order => {
+          // Check if we have both timestamps
+          if (order.submittedAt && order.completedAt) {
+            // submittedAt might be a Firestore Timestamp or a Date
+            const submittedTime = order.submittedAt?.toDate ? order.submittedAt.toDate() : new Date(order.submittedAt);
+            const completedTime = order.completedAt?.toDate ? order.completedAt.toDate() : new Date(order.completedAt);
+
+            // Calculate prep time in minutes
+            const prepTimeMs = completedTime - submittedTime;
+            const prepTimeMinutes = prepTimeMs / (1000 * 60);
+
+            // Only include reasonable times (1-30 minutes) to filter out anomalies
+            if (prepTimeMinutes > 0 && prepTimeMinutes <= 30) {
+              prepTimes.push(prepTimeMinutes);
+            }
+          }
+        });
+
+        // If we have valid prep times, calculate average
+        if (prepTimes.length > 0) {
+          const totalTime = prepTimes.reduce((sum, time) => sum + time, 0);
+          avgPrepTimeMinutes = totalTime / prepTimes.length;
+          calculatedFromActualData = true;
+
+          console.log(`📊 Wait time calculated from ${prepTimes.length} recent orders:`, {
+            prepTimes: prepTimes.map(t => t.toFixed(1) + 'min'),
+            average: avgPrepTimeMinutes.toFixed(1) + 'min'
+          });
+        }
+      }
+
+      // If no historical data, use intelligent defaults based on queue
+      if (!calculatedFromActualData) {
+        const queueLength = submittedOrders.length;
+        if (queueLength === 0) {
+          avgPrepTimeMinutes = 4;
+        } else if (queueLength <= 2) {
+          avgPrepTimeMinutes = 5;
+        } else if (queueLength <= 5) {
+          avgPrepTimeMinutes = 7;
+        } else {
+          avgPrepTimeMinutes = 9;
+        }
+        console.log('📊 Wait time using default estimate (no historical data)');
+      }
+
+      // Calculate total wait time
+      const queueLength = submittedOrders.length;
+
+      // Base prep time for the new order + time for orders ahead in queue
+      // Assume orders ahead will take the same average time
+      const totalWaitMinutes = avgPrepTimeMinutes + (queueLength * avgPrepTimeMinutes);
+
+      // Create a conservative range (round to nearest minute)
+      // Min: -15% of estimate (but at least 3 min)
+      // Max: +20% of estimate
+      const minTime = Math.max(3, Math.round(totalWaitMinutes * 0.85));
+      const maxTime = Math.ceil(totalWaitMinutes * 1.2);
+
+      // Generate display text
+      let displayText;
+      if (queueLength === 0) {
+        displayText = `${minTime}-${maxTime} minutes`;
+      } else {
+        displayText = `${minTime}-${maxTime} minutes (${queueLength} ${queueLength === 1 ? 'order' : 'orders'} ahead)`;
+      }
+
+      // Log for debugging
+      console.log('⏱️ Wait time estimate:', {
+        avgPrepTime: avgPrepTimeMinutes.toFixed(1) + 'min',
+        queueLength,
+        totalEstimate: totalWaitMinutes.toFixed(1) + 'min',
+        range: `${minTime}-${maxTime}min`,
+        dataSource: calculatedFromActualData ? 'historical' : 'default'
+      });
+
+      return {
+        min: minTime,
+        max: maxTime,
+        queueLength: queueLength,
+        avgPrepTime: Math.round(avgPrepTimeMinutes),
+        displayText: displayText,
+        calculatedFromData: calculatedFromActualData
+      };
+    } catch (error) {
+      console.error("Error calculating wait time:", error);
+      return {
+        min: 5,
+        max: 10,
+        queueLength: 0,
+        avgPrepTime: 5,
+        displayText: "5-10 minutes",
+        calculatedFromData: false
+      };
+    }
+  };
+
   const value = {
     orders,
     currentDrink,
@@ -384,6 +612,7 @@ export const OrderProvider = ({ children }) => {
     pendingDonations,
     totalDonations,
     allCompletedOrders,
+    outOfStockDrinks,
     addToOrder,
     removeFromOrder,
     clearOrders,
@@ -397,6 +626,8 @@ export const OrderProvider = ({ children }) => {
     getOrdersByPhone,
     submitReview,
     getAllReviews,
+    toggleDrinkStock,
+    getEstimatedWaitTime,
     orderCount: orders.length,
   };
 

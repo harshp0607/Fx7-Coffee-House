@@ -2,14 +2,16 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useOrder } from "../context/OrderContext";
 import StarRating from "../components/StarRating";
+import { DRINK_NAMES } from "../data/drinks";
 
 const Frame2 = () => {
   const navigate = useNavigate();
-  const { submittedOrders, completedToday, pendingDonations, totalDonations, allCompletedOrders, markOrderAsReady, verifyDonation, clearCompletedToday, clearTotalDonations, clearAllHistory, getAllReviews } = useOrder();
+  const { submittedOrders, completedToday, pendingDonations, totalDonations, allCompletedOrders, outOfStockDrinks, markOrderAsReady, verifyDonation, clearCompletedToday, clearTotalDonations, clearAllHistory, getAllReviews, toggleDrinkStock } = useOrder();
   const [activeTab, setActiveTab] = useState("active");
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const [allReviews, setAllReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [clearedDonationIds, setClearedDonationIds] = useState([]);
 
   useEffect(() => {
     if (activeTab === "reviews") {
@@ -107,6 +109,12 @@ const Frame2 = () => {
           >
             Reviews ({allReviews.length})
           </button>
+          <button
+            onClick={() => setActiveTab("inventory")}
+            className={`flex-1 tab ${activeTab === "inventory" ? "bg-orange-600 text-white shadow-md" : "bg-white/50 text-orange-600 hover:bg-white/80"}`}
+          >
+            Inventory
+          </button>
         </div>
       </div>
 
@@ -182,37 +190,58 @@ const Frame2 = () => {
             <div className="flex items-center justify-between gap-5 px-2 w-full">
               <b className="section-title">Pending Donations</b>
               <div className="badge bg-green-600 text-white px-4 py-2">
-                <b>{pendingDonations.length} Pending</b>
+                <b>{pendingDonations.filter(order => !clearedDonationIds.includes(order.id)).length} Pending</b>
               </div>
             </div>
 
             <div className="flex flex-col gap-4 w-full text-base">
-              {pendingDonations.length === 0 ? (
+              {pendingDonations.filter(order => !clearedDonationIds.includes(order.id)).length === 0 ? (
                 <div className="flex items-center justify-center py-16 text-lg text-cocoa-500 font-semibold">
                   No pending donations to verify.
                 </div>
               ) : (
-                pendingDonations.map((order) => (
-                  <div key={order.id} className="card border-green-200 flex items-center justify-between p-5 gap-4 hover:shadow-2xl">
-                    <div className="flex-1">
-                      <div className="font-bold text-lg text-pine-700">{order.userInfo.name}</div>
-                      <div className="text-sm text-cocoa-500 font-medium mt-1">
-                        Pledged: ${order.donation.toFixed(2)}
+                pendingDonations
+                  .filter(order => !clearedDonationIds.includes(order.id))
+                  .map((order) => (
+                    <div key={order.id} className="card border-green-200 flex items-center justify-between p-5 gap-4 hover:shadow-2xl">
+                      <div className="flex-1">
+                        <div className="font-bold text-lg text-pine-700">{order.userInfo.name}</div>
+                        <div className="text-sm text-cocoa-500 font-medium mt-1">
+                          Pledged: ${order.donation.toFixed(2)}
+                        </div>
+                        <div className="text-xs text-cocoa-400 mt-1">Order #{order.id.slice(-6)}</div>
                       </div>
-                      <div className="text-xs text-cocoa-400 mt-1">Order #{order.id.slice(-6)}</div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={async () => {
+                            if (window.confirm(`Verify $${order.donation.toFixed(2)} donation from ${order.userInfo.name}?`)) {
+                              try {
+                                await verifyDonation(order.id, order.donation, order.userInfo.name);
+                                alert("Donation verified successfully!");
+                              } catch (error) {
+                                console.error("Failed to verify donation:", error);
+                                alert("Failed to verify donation. Check console for details.");
+                              }
+                            }
+                          }}
+                          className="btn-success btn-medium hover:shadow-lg"
+                        >
+                          ✓ Verify
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Clear $${order.donation.toFixed(2)} donation from ${order.userInfo.name}? This will hide it from the pending list.`)) {
+                              setClearedDonationIds([...clearedDonationIds, order.id]);
+                              console.log("Donation cleared from view (local only):", order.id);
+                            }
+                          }}
+                          className="btn-danger btn-medium hover:shadow-lg"
+                        >
+                          ✗ Clear
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      onClick={() => {
-                        if (window.confirm(`Verify $${order.donation.toFixed(2)} donation from ${order.userInfo.name}?`)) {
-                          verifyDonation(order.id, order.donation, order.userInfo.name);
-                        }
-                      }}
-                      className="btn-success btn-medium hover:shadow-lg"
-                    >
-                      ✓ Verify
-                    </button>
-                  </div>
-                ))
+                  ))
               )}
             </div>
           </>
@@ -359,6 +388,52 @@ const Frame2 = () => {
                 )}
               </div>
             )}
+          </>
+        )}
+
+        {/* Inventory Tab */}
+        {activeTab === "inventory" && (
+          <>
+            <div className="flex items-center justify-between gap-5 px-2 w-full">
+              <b className="section-title">Drink Inventory</b>
+              <div className="badge bg-orange-600 text-white px-4 py-2">
+                <b>{outOfStockDrinks.length} Out of Stock</b>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 w-full text-base">
+              {DRINK_NAMES.map((drinkName) => {
+                const isOutOfStock = outOfStockDrinks.includes(drinkName);
+                return (
+                  <div key={drinkName} className="card border-orange-200 flex items-center justify-between p-5 gap-4 hover:shadow-xl">
+                    <div className="flex-1">
+                      <div className="font-bold text-lg text-pine-700">{drinkName}</div>
+                      <div className={`text-sm font-medium mt-1 ${isOutOfStock ? "text-red-600" : "text-green-600"}`}>
+                        {isOutOfStock ? "Out of Stock" : "In Stock"}
+                      </div>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await toggleDrinkStock(drinkName, isOutOfStock);
+                          console.log(`Toggled ${drinkName} to ${isOutOfStock ? "in stock" : "out of stock"}`);
+                        } catch (error) {
+                          console.error("Failed to toggle stock:", error);
+                          alert("Failed to update inventory. Check console for details.");
+                        }
+                      }}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                        isOutOfStock
+                          ? "bg-green-500 text-white hover:bg-green-600"
+                          : "bg-red-500 text-white hover:bg-red-600"
+                      }`}
+                    >
+                      {isOutOfStock ? "Mark In Stock" : "Mark Out of Stock"}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </>
         )}
       </div>

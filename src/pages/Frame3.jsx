@@ -33,7 +33,7 @@ const Frame3 = () => {
     if (donationAmount <= 0) return false;
 
     const venmoUsername = "harshp0607";
-    const note = `Donation from ${userInfo.name} - FX7 Coffee House`;
+    const note = `Donation to Feeding America from ${userInfo.name} - FX7 Holiday Coffee House`;
     const venmoUrl = `venmo://paycharge?txn=pay&recipients=${venmoUsername}&amount=${donationAmount}&note=${encodeURIComponent(note)}`;
     const venmoWebUrl = `https://venmo.com/${venmoUsername}?txn=pay&amount=${donationAmount}&note=${encodeURIComponent(note)}`;
 
@@ -45,7 +45,7 @@ const Frame3 = () => {
     return true;
   };
 
-  const handleSubmitOrder = () => {
+  const handleSubmitOrder = async () => {
     if (orders.length === 0) {
       alert("Please add items to your order first!");
       return;
@@ -54,24 +54,36 @@ const Frame3 = () => {
       alert("Please fill in your name and phone number!");
       return;
     }
-    if (!smsConsent) {
-      alert("Please consent to receive SMS notifications about your order!");
-      return;
-    }
 
     const donation = getDonationAmount();
 
-    if (donation > 0) {
-      openVenmo();
-      setTimeout(() => {
-        submitOrder(userInfo, donation);
-        alert("Order submitted! Please complete your Venmo donation. We'll text you when your order is ready.");
-        navigate("/");
-      }, 2000);
-    } else {
-      submitOrder(userInfo, donation);
-      alert("Order submitted successfully! Your order has been sent to the barista.");
-      navigate("/");
+    try {
+      if (donation > 0) {
+        openVenmo();
+        // Wait a bit for Venmo to open, then submit order
+        setTimeout(async () => {
+          const submittedOrder = await submitOrder(userInfo, donation);
+          navigate("/order-confirmation", {
+            state: {
+              orderData: submittedOrder,
+              userInfo,
+              donation,
+            },
+          });
+        }, 2000);
+      } else {
+        const submittedOrder = await submitOrder(userInfo, donation);
+        navigate("/order-confirmation", {
+          state: {
+            orderData: submittedOrder,
+            userInfo,
+            donation,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting order:", error);
+      alert("Failed to submit order. Please try again.");
     }
   };
 

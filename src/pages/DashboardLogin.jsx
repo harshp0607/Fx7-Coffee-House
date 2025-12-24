@@ -9,7 +9,7 @@ const DashboardLogin = () => {
   const navigate = useNavigate();
 
   // You can change this password to whatever you want
-  const DASHBOARD_PASSWORD = "barista2024";
+  const DASHBOARD_PASSWORD = "fx72025";
 
   const handleSubmit = (e) => {
     e.preventDefault();

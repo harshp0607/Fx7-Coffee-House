@@ -12,6 +12,7 @@ import Frame1 from "./pages/Frame1";
 import DashboardLogin from "./pages/DashboardLogin";
 import Frame3 from "./pages/Frame3";
 import MyOrders from "./pages/MyOrders";
+import OrderConfirmation from "./pages/OrderConfirmation";
 
 function App() {
   const action = useNavigationType();
@@ -70,6 +71,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardLogin />} />
         <Route path="/checkout" element={<Frame3 />} />
         <Route path="/my-orders" element={<MyOrders />} />
+        <Route path="/order-confirmation" element={<OrderConfirmation />} />
       </Routes>
     </OrderProvider>
   );
