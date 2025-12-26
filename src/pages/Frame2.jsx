@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useOrder } from "../context/OrderContext";
 import StarRating from "../components/StarRating";
 import { DRINK_NAMES } from "../data/drinks";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 const Frame2 = () => {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ const Frame2 = () => {
   const [allReviews, setAllReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [clearedDonationIds, setClearedDonationIds] = useState([]);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", onConfirm: null });
 
   useEffect(() => {
     if (activeTab === "reviews") {
@@ -35,24 +37,30 @@ const Frame2 = () => {
     <div className="page-container items-center">
       <div className="w-full max-w-[1600px] flex flex-col">
       <div className="page-header">
-        <h1 className="text-3xl font-black tracking-tight text-pine-800">Barista Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-pine-800">Barista Dashboard</h1>
 
         {/* Stats Cards */}
-        <div className="flex items-start gap-4 text-3xl">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-3 text-2xl sm:text-3xl">
           <div className="stat-card bg-sage-100 border-sage-300">
             <b className="text-pine-800">{submittedOrders.length}</b>
-            <div className="text-sm font-bold text-pine-600">In Queue</div>
+            <div className="text-xs sm:text-sm font-bold text-pine-600">In Queue</div>
           </div>
 
           <div className="stat-card bg-pine-100 border-pine-300">
-            <div className="flex items-center justify-between w-full">
+            <div className="flex items-center justify-between w-full gap-2">
               <b className="text-pine-800">{completedToday}</b>
               {completedToday > 0 && (
                 <button
                   onClick={() => {
-                    if (window.confirm("Clear today's completed orders count? This will delete all completed orders from today.")) {
-                      clearCompletedToday();
-                    }
+                    setConfirmDialog({
+                      isOpen: true,
+                      title: "Clear Today's Orders?",
+                      message: "This will archive all completed orders from today. Are you sure?",
+                      onConfirm: () => {
+                        clearCompletedToday();
+                        setConfirmDialog({ ...confirmDialog, isOpen: false });
+                      }
+                    });
                   }}
                   className="btn-primary btn-small"
                 >
@@ -60,18 +68,24 @@ const Frame2 = () => {
                 </button>
               )}
             </div>
-            <div className="text-sm font-bold text-pine-600">Completed Today</div>
+            <div className="text-xs sm:text-sm font-bold text-pine-600">Completed Today</div>
           </div>
 
           <div className="stat-card bg-green-100 border-green-300">
-            <div className="flex items-center justify-between w-full">
+            <div className="flex items-center justify-between w-full gap-2">
               <b className="text-green-800">${totalDonations.toFixed(2)}</b>
               {totalDonations > 0 && (
                 <button
                   onClick={() => {
-                    if (window.confirm("Clear total donations? This will delete all verified donation records.")) {
-                      clearTotalDonations();
-                    }
+                    setConfirmDialog({
+                      isOpen: true,
+                      title: "Clear Total Donations?",
+                      message: "This will delete all verified donation records. Are you sure?",
+                      onConfirm: () => {
+                        clearTotalDonations();
+                        setConfirmDialog({ ...confirmDialog, isOpen: false });
+                      }
+                    });
                   }}
                   className="btn-success btn-small"
                 >
@@ -79,7 +93,7 @@ const Frame2 = () => {
                 </button>
               )}
             </div>
-            <div className="text-sm font-bold text-green-700">Total Donations</div>
+            <div className="text-xs sm:text-sm font-bold text-green-700">Total Donations</div>
           </div>
         </div>
 
@@ -214,15 +228,22 @@ const Frame2 = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={async () => {
-                            if (window.confirm(`Verify $${order.donation.toFixed(2)} donation from ${order.userInfo.name}?`)) {
-                              try {
-                                await verifyDonation(order.id, order.donation, order.userInfo.name);
-                                alert("Donation verified successfully!");
-                              } catch (error) {
-                                console.error("Failed to verify donation:", error);
-                                alert("Failed to verify donation. Check console for details.");
+                            setConfirmDialog({
+                              isOpen: true,
+                              title: "Verify Donation?",
+                              message: `Verify $${order.donation.toFixed(2)} donation from ${order.userInfo.name}?`,
+                              onConfirm: async () => {
+                                try {
+                                  await verifyDonation(order.id, order.donation, order.userInfo.name);
+                                  setConfirmDialog({ ...confirmDialog, isOpen: false });
+                                  alert("Donation verified successfully!");
+                                } catch (error) {
+                                  console.error("Failed to verify donation:", error);
+                                  setConfirmDialog({ ...confirmDialog, isOpen: false });
+                                  alert("Failed to verify donation. Check console for details.");
+                                }
                               }
-                            }
+                            });
                           }}
                           className="btn-success btn-medium hover:shadow-lg"
                         >
@@ -230,10 +251,16 @@ const Frame2 = () => {
                         </button>
                         <button
                           onClick={() => {
-                            if (window.confirm(`Clear $${order.donation.toFixed(2)} donation from ${order.userInfo.name}? This will hide it from the pending list.`)) {
-                              setClearedDonationIds([...clearedDonationIds, order.id]);
-                              console.log("Donation cleared from view (local only):", order.id);
-                            }
+                            setConfirmDialog({
+                              isOpen: true,
+                              title: "Clear Donation?",
+                              message: `Clear $${order.donation.toFixed(2)} donation from ${order.userInfo.name}? This will hide it from the pending list.`,
+                              onConfirm: () => {
+                                setClearedDonationIds([...clearedDonationIds, order.id]);
+                                console.log("Donation cleared from view (local only):", order.id);
+                                setConfirmDialog({ ...confirmDialog, isOpen: false });
+                              }
+                            });
                           }}
                           className="btn-danger btn-medium hover:shadow-lg"
                         >
@@ -256,9 +283,15 @@ const Frame2 = () => {
                 {allCompletedOrders.length > 0 && (
                   <button
                     onClick={() => {
-                      if (window.confirm("Clear all order history? This will delete all completed orders permanently.")) {
-                        clearAllHistory();
-                      }
+                      setConfirmDialog({
+                        isOpen: true,
+                        title: "Clear All History?",
+                        message: "This will delete all completed orders permanently. Are you sure?",
+                        onConfirm: () => {
+                          clearAllHistory();
+                          setConfirmDialog({ ...confirmDialog, isOpen: false });
+                        }
+                      });
                     }}
                     className="btn-danger btn-small"
                   >
@@ -480,6 +513,14 @@ const Frame2 = () => {
         )}
       </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+      />
     </div>
   );
 };
