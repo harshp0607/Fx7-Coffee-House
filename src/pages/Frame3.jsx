@@ -5,7 +5,7 @@ import { useOrder } from "../context/OrderContext";
 const Frame3 = () => {
   const navigate = useNavigate();
   const { orders, submitOrder } = useOrder();
-  const [selectedDonation, setSelectedDonation] = useState("$10");
+  const [selectedDonation, setSelectedDonation] = useState("$25");
   const [customAmount, setCustomAmount] = useState("");
   const [userInfo, setUserInfo] = useState({
     name: "",
