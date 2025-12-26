@@ -25,9 +25,16 @@ const Frame = () => {
           </div>
         </div>
 
+        {/* Coffee Section */}
         <div className="self-stretch flex flex-col items-start py-[2rem] px-[1.5rem] sm:px-[1rem] md:px-[2rem] lg:px-[3rem] gap-[1.5rem] bg-gradient-to-b from-transparent to-white/40">
-          <b className="self-stretch relative text-pine-700 text-[1.75rem] tracking-tight drop-shadow-sm">Seasonal Favorites</b>
-          <DrinksGrid />
+          <b className="self-stretch relative text-pine-700 text-[1.75rem] tracking-tight drop-shadow-sm">Seasonal Coffees</b>
+          <DrinksGrid category="coffee" />
+        </div>
+
+        {/* Other Seasonal Favorites Section */}
+        <div className="self-stretch flex flex-col items-start py-[1rem] px-[1.5rem] sm:px-[1rem] md:px-[2rem] lg:px-[3rem] gap-[1.5rem] bg-gradient-to-b from-white/40 to-white/60">
+          <b className="self-stretch relative text-pine-700 text-[1.75rem] tracking-tight drop-shadow-sm">Other Seasonal Favorites</b>
+          <DrinksGrid category="other" />
         </div>
         <div className="self-stretch bg-gradient-to-t from-cream-100 to-white/60 flex flex-col items-start pt-[1.5rem] px-[1.5rem] sm:px-[1rem] md:px-[2rem] lg:px-[3rem] pb-[2.5rem] text-[1rem] text-white">
           <div

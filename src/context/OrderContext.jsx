@@ -35,6 +35,7 @@ export const OrderProvider = ({ children }) => {
   const [totalDonations, setTotalDonations] = useState(0);
   const [allCompletedOrders, setAllCompletedOrders] = useState([]);
   const [outOfStockDrinks, setOutOfStockDrinks] = useState([]);
+  const [outOfStockMilk, setOutOfStockMilk] = useState([]);
 
   useEffect(() => {
     const q = query(collection(db, "orders"), orderBy("timestamp", "desc"));
@@ -132,11 +133,17 @@ export const OrderProvider = ({ children }) => {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const outOfStock = snapshot.docs
-        .filter((doc) => doc.data().inStock === false)
+        .filter((doc) => doc.data().inStock === false && doc.data().itemType === "drink")
         .map((doc) => doc.data().drinkName);
 
+      const outOfStockMilkTypes = snapshot.docs
+        .filter((doc) => doc.data().inStock === false && doc.data().itemType === "milk")
+        .map((doc) => doc.data().milkType);
+
       console.log("Out of stock drinks:", outOfStock);
+      console.log("Out of stock milk types:", outOfStockMilkTypes);
       setOutOfStockDrinks(outOfStock);
+      setOutOfStockMilk(outOfStockMilkTypes);
     });
 
     return () => unsubscribe();
@@ -467,13 +474,14 @@ export const OrderProvider = ({ children }) => {
       console.log("Toggling stock for:", drinkName, "to:", inStock);
 
       // Check if inventory document exists for this drink
-      const q = query(collection(db, "inventory"), where("drinkName", "==", drinkName));
+      const q = query(collection(db, "inventory"), where("drinkName", "==", drinkName), where("itemType", "==", "drink"));
       const snapshot = await getDocs(q);
 
       if (snapshot.empty) {
         // Create new inventory document
         await addDoc(collection(db, "inventory"), {
           drinkName,
+          itemType: "drink",
           inStock,
           updatedAt: serverTimestamp(),
         });
@@ -491,6 +499,40 @@ export const OrderProvider = ({ children }) => {
       return true;
     } catch (error) {
       console.error("Error toggling drink stock:", error);
+      throw error;
+    }
+  };
+
+  const toggleMilkStock = async (milkType, inStock) => {
+    try {
+      console.log("Toggling milk stock for:", milkType, "to:", inStock);
+
+      // Check if inventory document exists for this milk type
+      const q = query(collection(db, "inventory"), where("milkType", "==", milkType), where("itemType", "==", "milk"));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        // Create new inventory document
+        await addDoc(collection(db, "inventory"), {
+          milkType,
+          itemType: "milk",
+          inStock,
+          updatedAt: serverTimestamp(),
+        });
+        console.log("Created milk inventory record for:", milkType);
+      } else {
+        // Update existing document
+        const docRef = doc(db, "inventory", snapshot.docs[0].id);
+        await updateDoc(docRef, {
+          inStock,
+          updatedAt: serverTimestamp(),
+        });
+        console.log("Updated milk inventory record for:", milkType);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error toggling milk stock:", error);
       throw error;
     }
   };
@@ -613,6 +655,7 @@ export const OrderProvider = ({ children }) => {
     totalDonations,
     allCompletedOrders,
     outOfStockDrinks,
+    outOfStockMilk,
     addToOrder,
     removeFromOrder,
     clearOrders,
@@ -627,6 +670,7 @@ export const OrderProvider = ({ children }) => {
     submitReview,
     getAllReviews,
     toggleDrinkStock,
+    toggleMilkStock,
     getEstimatedWaitTime,
     orderCount: orders.length,
   };

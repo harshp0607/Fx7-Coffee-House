@@ -49,6 +49,7 @@ const Frame1 = () => {
       <CustomizationOptions
         customization={customization}
         setCustomization={setCustomization}
+        drinkName={currentDrink?.drinkName}
       />
 
       <div className="self-stretch bg-gradient-to-t from-cream-100 to-white/60 flex flex-col items-start pt-6 px-6 pb-10 gap-5 text-sm text-cocoa-600">

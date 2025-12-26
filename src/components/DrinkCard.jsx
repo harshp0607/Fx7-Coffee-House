@@ -24,10 +24,10 @@ const DrinkCard1 = ({ className = "", image, drinkName, description, outOfStock 
           : "cursor-pointer hover:shadow-2xl hover:border-pine-300 hover:-translate-y-1 hover:bg-white border-sage-200"
       }`}
     >
-      <div className="relative">
+      <div className="relative w-[6rem] h-[6rem] flex-shrink-0">
         <div className="absolute inset-0 bg-gradient-to-br from-sage-200 to-pine-200 rounded-xl blur-md opacity-20"></div>
         <img
-          className="h-[6rem] w-[6rem] relative rounded-xl object-cover shadow-md ring-2 ring-white"
+          className="h-full w-full relative rounded-xl object-cover shadow-md ring-2 ring-white"
           alt=""
           src={image}
         />

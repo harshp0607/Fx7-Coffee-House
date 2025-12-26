@@ -4,34 +4,46 @@
 export const DRINKS = [
   {
     id: "peppermint-mocha",
-    image: "/Image1@2x.JPG",
-    drinkName: "Peppermint Mocha",
+    image: "/peppermint-fx7.png",
+    drinkName: "Peppermint Mocha Latte",
     description: "Dark chocolate with cool peppermint",
+    category: "coffee"
   },
   {
     id: "gingerbread-latte",
-    image: "/Image2@2x.JPG",
+    image: "/gingerbread-fx7.png",
     drinkName: "Gingerbread Latte",
-    description: "Warm spices with sweet molasses",
+    description: "Warm spices with sweet molasses and ginger",
+    category: "coffee"
   },
   {
     id: "cayenne-mocha-latte",
-    image: "/IMG_1145.JPG",
+    image: "/cayenne-fx7.png",
     drinkName: "Cayenne Mocha Latte",
-    description: "Creamy eggnog with rich espresso",
+    description: "The same chocolatey goodness with a spicy kick",
+    category: "coffee"
   },
   {
-    id: "peppermint-mocha-latte",
-    image: "/IMG_1145.JPG",
-    drinkName: "Peppermint Mocha Latte",
-    description: "Creamy eggnog with rich espresso",
+    id: "egg-nog-latte",
+    image: "/eggnog-fx7.png",
+    drinkName: "Egg Nog Latte",
+    description: "Holiday classic with rich egg nog and warm spices",
+    category: "coffee"
   },
   {
-    id: "graham-cracker-matcha",
-    image: "/IMG_1145.JPG",
-    drinkName: "Graham Cracker Matcha",
-    description: "Creamy eggnog with rich espresso",
+    id: "gingerbread-matcha",
+    image: "/gingerbread-matcha-fx7.png",
+    drinkName: "Gingerbread Matcha Latte",
+    description: "Creamy matcha with gingerbread spices",
+    category: "other"
   },
+  {
+    id: "hot-chocolate",
+    image: "/hot-chocolate-fx7.png",
+    drinkName: "Hot Chocolate",
+    description: "Rich and creamy hot chocolate",
+    category: "other"
+  }
 ];
 
 // Export drink names for easy access

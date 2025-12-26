@@ -6,7 +6,7 @@ import { DRINK_NAMES } from "../data/drinks";
 
 const Frame2 = () => {
   const navigate = useNavigate();
-  const { submittedOrders, completedToday, pendingDonations, totalDonations, allCompletedOrders, outOfStockDrinks, markOrderAsReady, verifyDonation, clearCompletedToday, clearTotalDonations, clearAllHistory, getAllReviews, toggleDrinkStock } = useOrder();
+  const { submittedOrders, completedToday, pendingDonations, totalDonations, allCompletedOrders, outOfStockDrinks, outOfStockMilk, markOrderAsReady, verifyDonation, clearCompletedToday, clearTotalDonations, clearAllHistory, getAllReviews, toggleDrinkStock, toggleMilkStock } = useOrder();
   const [activeTab, setActiveTab] = useState("active");
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const [allReviews, setAllReviews] = useState([]);
@@ -395,44 +395,86 @@ const Frame2 = () => {
         {activeTab === "inventory" && (
           <>
             <div className="flex items-center justify-between gap-5 px-2 w-full">
-              <b className="section-title">Drink Inventory</b>
+              <b className="section-title">Inventory Management</b>
               <div className="badge bg-orange-600 text-white px-4 py-2">
-                <b>{outOfStockDrinks.length} Out of Stock</b>
+                <b>{outOfStockDrinks.length + outOfStockMilk.length} Out of Stock</b>
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 w-full text-base">
-              {DRINK_NAMES.map((drinkName) => {
-                const isOutOfStock = outOfStockDrinks.includes(drinkName);
-                return (
-                  <div key={drinkName} className="card border-orange-200 flex items-center justify-between p-5 gap-4 hover:shadow-xl">
-                    <div className="flex-1">
-                      <div className="font-bold text-lg text-pine-700">{drinkName}</div>
-                      <div className={`text-sm font-medium mt-1 ${isOutOfStock ? "text-red-600" : "text-green-600"}`}>
-                        {isOutOfStock ? "Out of Stock" : "In Stock"}
+            {/* Milk Options Section */}
+            <div className="w-full">
+              <div className="font-bold text-lg text-pine-700 mb-3 px-2">Milk Options</div>
+              <div className="flex flex-col gap-3 w-full text-base">
+                {["Whole Milk", "Oat Milk"].map((milkType) => {
+                  const isOutOfStock = outOfStockMilk.includes(milkType);
+                  return (
+                    <div key={milkType} className="card border-blue-200 flex items-center justify-between p-5 gap-4 hover:shadow-xl">
+                      <div className="flex-1">
+                        <div className="font-bold text-lg text-pine-700">{milkType}</div>
+                        <div className={`text-sm font-medium mt-1 ${isOutOfStock ? "text-red-600" : "text-green-600"}`}>
+                          {isOutOfStock ? "Out of Stock" : "In Stock"}
+                        </div>
                       </div>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await toggleMilkStock(milkType, isOutOfStock);
+                            console.log(`Toggled ${milkType} to ${isOutOfStock ? "in stock" : "out of stock"}`);
+                          } catch (error) {
+                            console.error("Failed to toggle milk stock:", error);
+                            alert("Failed to update inventory. Check console for details.");
+                          }
+                        }}
+                        className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                          isOutOfStock
+                            ? "bg-green-500 text-white hover:bg-green-600"
+                            : "bg-red-500 text-white hover:bg-red-600"
+                        }`}
+                      >
+                        {isOutOfStock ? "Mark In Stock" : "Mark Out of Stock"}
+                      </button>
                     </div>
-                    <button
-                      onClick={async () => {
-                        try {
-                          await toggleDrinkStock(drinkName, isOutOfStock);
-                          console.log(`Toggled ${drinkName} to ${isOutOfStock ? "in stock" : "out of stock"}`);
-                        } catch (error) {
-                          console.error("Failed to toggle stock:", error);
-                          alert("Failed to update inventory. Check console for details.");
-                        }
-                      }}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        isOutOfStock
-                          ? "bg-green-500 text-white hover:bg-green-600"
-                          : "bg-red-500 text-white hover:bg-red-600"
-                      }`}
-                    >
-                      {isOutOfStock ? "Mark In Stock" : "Mark Out of Stock"}
-                    </button>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Drinks Section */}
+            <div className="w-full">
+              <div className="font-bold text-lg text-pine-700 mb-3 px-2">Drinks</div>
+              <div className="flex flex-col gap-3 w-full text-base">
+                {DRINK_NAMES.map((drinkName) => {
+                  const isOutOfStock = outOfStockDrinks.includes(drinkName);
+                  return (
+                    <div key={drinkName} className="card border-orange-200 flex items-center justify-between p-5 gap-4 hover:shadow-xl">
+                      <div className="flex-1">
+                        <div className="font-bold text-lg text-pine-700">{drinkName}</div>
+                        <div className={`text-sm font-medium mt-1 ${isOutOfStock ? "text-red-600" : "text-green-600"}`}>
+                          {isOutOfStock ? "Out of Stock" : "In Stock"}
+                        </div>
+                      </div>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await toggleDrinkStock(drinkName, isOutOfStock);
+                            console.log(`Toggled ${drinkName} to ${isOutOfStock ? "in stock" : "out of stock"}`);
+                          } catch (error) {
+                            console.error("Failed to toggle stock:", error);
+                            alert("Failed to update inventory. Check console for details.");
+                          }
+                        }}
+                        className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                          isOutOfStock
+                            ? "bg-green-500 text-white hover:bg-green-600"
+                            : "bg-red-500 text-white hover:bg-red-600"
+                        }`}
+                      >
+                        {isOutOfStock ? "Mark In Stock" : "Mark Out of Stock"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </>
         )}
