@@ -183,8 +183,8 @@ const Frame3 = () => {
           <div className="flex flex-col gap-4.5 text-base">
             <label className="font-bold text-pine-700 text-lg">Choose Your Donation</label>
             <div className="flex gap-4 text-center text-lg">
-              <div onClick={() => handleDonationSelect("$10")} className={donationButtonClass(selectedDonation === "$10")}>
-                <b>$10</b>
+              <div onClick={() => handleDonationSelect("$25")} className={donationButtonClass(selectedDonation === "$25")}>
+                <b>$25</b>
               </div>
               <div onClick={() => handleDonationSelect("Custom")} className={donationButtonClass(selectedDonation === "Custom")}>
                 <b>Custom</b>
