@@ -93,18 +93,39 @@ export const OrderProvider = ({ children }) => {
 
       console.log("All completed orders loaded:", allOrders.length);
       setAllCompletedOrders(allOrders);
-
-      // Filter for pending donations (completed orders with unverified donations)
-      const donations = allOrders.filter(
-        (order) => order.donation > 0 && !order.donationVerified
-      );
-      console.log("Pending donations to verify:", donations.length);
-      console.log("Pending donation IDs:", donations.map(d => ({ id: d.id, name: d.userInfo?.name, amount: d.donation })));
-      setPendingDonations(donations);
     });
 
     return () => unsubscribe();
   }, []);
+
+  // Calculate pending donations from both active and completed orders
+  useEffect(() => {
+    // Get donations from active orders (not yet marked ready)
+    const activeDonations = submittedOrders.filter(
+      (order) => order.donation > 0
+    );
+
+    // Get donations from completed orders (marked ready but not verified)
+    const completedDonations = allCompletedOrders.filter(
+      (order) => order.donation > 0 && !order.donationVerified
+    );
+
+    // Combine both lists and remove duplicates by order ID
+    const seenIds = new Set();
+    const allPendingDonations = [...activeDonations, ...completedDonations].filter(order => {
+      if (seenIds.has(order.id)) {
+        console.log("Duplicate donation detected and removed:", order.id);
+        return false;
+      }
+      seenIds.add(order.id);
+      return true;
+    });
+
+    console.log("Pending donations to verify:", allPendingDonations.length);
+    console.log("  - From active orders:", activeDonations.length);
+    console.log("  - From completed orders:", completedDonations.length);
+    setPendingDonations(allPendingDonations);
+  }, [submittedOrders, allCompletedOrders]);
 
   // Listen to verified donations total
   useEffect(() => {
