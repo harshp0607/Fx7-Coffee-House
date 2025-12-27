@@ -143,9 +143,10 @@ const MyOrders = () => {
               </div>
 
               <div className="flex flex-col gap-4">
-                {activeOrders.map((order) => {
+                {activeOrders.map((order, index) => {
                   // Convert Firestore Timestamp to Date for accurate queue position
                   const orderSubmittedAt = order.submittedAt?.toDate ? order.submittedAt.toDate() : new Date(order.submittedAt);
+                  console.log(`Displaying order ${index + 1}/${activeOrders.length} - ID: ${order.id.slice(-6)}, Submitted: ${orderSubmittedAt.toLocaleTimeString()}`);
                   const waitTime = getEstimatedWaitTime(orderSubmittedAt);
                   return (
                     <div key={order.id} className="card bg-gradient-to-br from-sage-50 to-pine-50 border-pine-300 border-2 p-6 gap-4">

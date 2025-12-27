@@ -637,14 +637,20 @@ export const OrderProvider = ({ children }) => {
       let queueLength;
       if (orderTimestamp) {
         // Count orders that were submitted before this order
+        console.log('📊 Calculating queue for order with timestamp:', orderTimestamp);
+        console.log('📊 Total submitted orders:', submittedOrders.length);
+
         queueLength = submittedOrders.filter(order => {
           const orderTime = order.submittedAt?.toDate ? order.submittedAt.toDate() : new Date(order.submittedAt);
-          return orderTime < orderTimestamp;
+          const isBefore = orderTime < orderTimestamp;
+          console.log(`   Order ${order.id.slice(-6)} submitted at ${orderTime.toLocaleTimeString()} - Before? ${isBefore}`);
+          return isBefore;
         }).length;
         console.log(`📊 Queue length: ${queueLength} orders ahead of this one`);
       } else {
         // If no timestamp provided, use total queue (for general estimates)
         queueLength = submittedOrders.length;
+        console.log(`📊 No timestamp provided - using total queue: ${queueLength}`);
       }
 
       // If no historical data, use intelligent defaults based on queue
