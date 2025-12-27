@@ -20,8 +20,10 @@ const OrderConfirmation = () => {
       return;
     }
 
-    // Calculate wait time
-    const estimatedTime = getEstimatedWaitTime();
+    // Calculate wait time - pass the order's submission timestamp
+    // so we only count orders that were submitted before this one
+    const orderSubmittedAt = orderData.submittedAt;
+    const estimatedTime = getEstimatedWaitTime(orderSubmittedAt);
     setWaitTime(estimatedTime);
 
     // Store phone number in localStorage for easy review access

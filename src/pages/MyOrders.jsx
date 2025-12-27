@@ -6,13 +6,14 @@ import StarRating from "../components/StarRating";
 const MyOrders = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { getOrdersByPhone, submitReview } = useOrder();
+  const { getOrdersByPhone, getActiveOrdersByPhone, submitReview, getEstimatedWaitTime } = useOrder();
 
   // Check for phone from navigation state or localStorage
   const initialPhone = location.state?.phoneNumber || localStorage.getItem("fx7_user_phone") || "";
 
   const [phoneNumber, setPhoneNumber] = useState(initialPhone);
   const [orders, setOrders] = useState([]);
+  const [activeOrders, setActiveOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [reviewingOrderId, setReviewingOrderId] = useState(null);
@@ -37,7 +38,9 @@ const MyOrders = () => {
     setHasSearched(true);
     try {
       const userOrders = await getOrdersByPhone(phoneNumber);
+      const userActiveOrders = getActiveOrdersByPhone(phoneNumber);
       setOrders(userOrders);
+      setActiveOrders(userActiveOrders);
     } catch (error) {
       console.error("Error fetching orders:", error);
       alert("Failed to fetch orders. Please try again.");
@@ -99,13 +102,13 @@ const MyOrders = () => {
     <div className="page-container items-center">
       <div className="w-full max-w-[900px] flex flex-col">
         <div className="page-header">
-          <h1 className="text-3xl font-black tracking-tight text-pine-800">My Orders</h1>
+          <h1 className="text-3xl font-black tracking-tight text-pine-800">Order Status & Reviews</h1>
         </div>
 
         <div className="content-section">
           {/* Phone Number Input */}
           <div className="card border-sage-200 p-7 gap-6">
-            <h2 className="text-2xl text-pine-700 font-bold drop-shadow-sm">Find Your Orders</h2>
+            <h2 className="text-2xl text-pine-700 font-bold drop-shadow-sm">Order Lookup</h2>
             <div className="flex flex-col gap-3">
               <label className="font-bold text-cocoa-600">Phone Number</label>
               <input
@@ -123,26 +126,103 @@ const MyOrders = () => {
               className="btn-primary btn-large w-full text-xl shadow-2xl border-2 border-pine-800 gap-3 hover:scale-[1.02]"
             >
               <span className="font-black tracking-wide">
-                {loading ? "Searching..." : "Find My Orders"}
+                {loading ? "Searching..." : "Check My Orders"}
               </span>
               <span className="text-2xl">→</span>
             </button>
           </div>
 
-          {/* Orders List */}
+          {/* Active Orders Section */}
+          {hasSearched && activeOrders.length > 0 && (
+            <div className="flex flex-col gap-4 w-full">
+              <div className="flex items-center justify-between gap-5 px-2">
+                <b className="section-title">Active Orders</b>
+                <div className="badge bg-green-600 text-white px-4 py-2">
+                  <b>{activeOrders.length} In Progress</b>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                {activeOrders.map((order) => {
+                  const waitTime = getEstimatedWaitTime(order.submittedAt);
+                  return (
+                    <div key={order.id} className="card bg-gradient-to-br from-sage-50 to-pine-50 border-pine-300 border-2 p-6 gap-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-bold text-lg text-pine-700">{order.userInfo.name}</div>
+                          <div className="text-sm text-cocoa-400">
+                            Order submitted {order.timestamp?.toLocaleString() || "recently"}
+                          </div>
+                        </div>
+                        <div className="badge bg-orange-500 text-white px-4 py-2">
+                          <b>In Queue</b>
+                        </div>
+                      </div>
+
+                      {/* Wait Time */}
+                      <div className="rounded-xl bg-white border-2 border-sage-200 p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl">⏱️</div>
+                          <div className="flex-1">
+                            <div className="text-sm font-bold text-pine-700 mb-1">
+                              Estimated Wait Time
+                            </div>
+                            <div className="text-lg font-black text-pine-600">
+                              {waitTime.displayText}
+                            </div>
+                            {waitTime.queueLength > 0 ? (
+                              <div className="text-xs text-cocoa-500 font-medium mt-1">
+                                {waitTime.queueLength} {waitTime.queueLength === 1 ? 'order' : 'orders'} ahead of yours
+                              </div>
+                            ) : (
+                              <div className="text-xs text-green-600 font-medium mt-1">
+                                No queue - being prepared now!
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Order Items */}
+                      <div className="border-t border-sage-200 pt-3 flex flex-col gap-2">
+                        <div className="font-bold text-pine-600 mb-1">Your Order:</div>
+                        {order.items.map((item, idx) => (
+                          <div key={idx} className="order-item">
+                            <div className="order-drink-name">{item.drinkName}</div>
+                            <div className="order-details">{item.temperature} · {item.milkType}</div>
+                            {item.specialInstructions && (
+                              <div className="order-note mt-0.5">Note: {item.specialInstructions}</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Completed Orders List */}
           {hasSearched && (
             <div className="flex flex-col gap-4 w-full">
               <div className="flex items-center justify-between gap-5 px-2">
-                <b className="section-title">Your Order History</b>
+                <b className="section-title">Completed Orders</b>
                 <div className="badge badge-count px-4 py-2">
                   <b>{orders.length} Orders</b>
                 </div>
               </div>
 
-              {orders.length === 0 ? (
+              {orders.length === 0 && activeOrders.length === 0 ? (
                 <div className="card border-sage-200 p-10 text-center">
                   <p className="text-lg text-cocoa-500 font-semibold">
                     No orders found for this phone number.
+                  </p>
+                </div>
+              ) : orders.length === 0 ? (
+                <div className="card border-sage-200 p-6 text-center">
+                  <p className="text-base text-cocoa-500 font-medium">
+                    No completed orders yet. Check back after your order is ready!
                   </p>
                 </div>
               ) : (

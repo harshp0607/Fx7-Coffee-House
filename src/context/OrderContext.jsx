@@ -440,6 +440,23 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
+  const getActiveOrdersByPhone = (phoneNumber) => {
+    try {
+      console.log("Fetching active orders for phone:", phoneNumber);
+
+      // Filter active orders (from submittedOrders state) by phone number
+      const userActiveOrders = submittedOrders.filter(
+        (order) => order.userInfo?.phone === phoneNumber
+      );
+
+      console.log("Active orders for user:", userActiveOrders.length);
+      return userActiveOrders;
+    } catch (error) {
+      console.error("Error fetching active orders by phone:", error);
+      throw error;
+    }
+  };
+
   const submitReview = async (orderId, rating, comment) => {
     try {
       console.log("Submitting review:", { orderId, rating, comment });
@@ -558,7 +575,7 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  const getEstimatedWaitTime = () => {
+  const getEstimatedWaitTime = (orderTimestamp = null) => {
     try {
       // Get the 5 most recent completed orders
       const recentCompletedOrders = allCompletedOrders.slice(0, 5);
@@ -566,44 +583,72 @@ export const OrderProvider = ({ children }) => {
       let avgPrepTimeMinutes = 5; // Default fallback
       let calculatedFromActualData = false;
 
-      // Calculate actual average prep time from recent orders
+      // Check if the most recent order is older than 45 minutes
+      const now = new Date();
+      const INACTIVITY_THRESHOLD_MS = 45 * 60 * 1000; // 45 minutes in milliseconds
+
       if (recentCompletedOrders.length > 0) {
-        const prepTimes = [];
+        const mostRecentOrder = recentCompletedOrders[0];
+        const mostRecentTime = mostRecentOrder.completedAt?.toDate ? mostRecentOrder.completedAt.toDate() : new Date(mostRecentOrder.completedAt);
+        const timeSinceLastOrder = now - mostRecentTime;
 
-        recentCompletedOrders.forEach(order => {
-          // Check if we have both timestamps
-          if (order.submittedAt && order.completedAt) {
-            // submittedAt might be a Firestore Timestamp or a Date
-            const submittedTime = order.submittedAt?.toDate ? order.submittedAt.toDate() : new Date(order.submittedAt);
-            const completedTime = order.completedAt?.toDate ? order.completedAt.toDate() : new Date(order.completedAt);
+        if (timeSinceLastOrder > INACTIVITY_THRESHOLD_MS) {
+          console.log('📊 Last order was more than 45 minutes ago - using default 5 minute estimate');
+          console.log(`   Last order was ${Math.round(timeSinceLastOrder / (1000 * 60))} minutes ago`);
+          avgPrepTimeMinutes = 5;
+          calculatedFromActualData = false;
+        } else {
+          // Calculate actual average prep time from recent orders
+          const prepTimes = [];
 
-            // Calculate prep time in minutes
-            const prepTimeMs = completedTime - submittedTime;
-            const prepTimeMinutes = prepTimeMs / (1000 * 60);
+          recentCompletedOrders.forEach(order => {
+            // Check if we have both timestamps
+            if (order.submittedAt && order.completedAt) {
+              // submittedAt might be a Firestore Timestamp or a Date
+              const submittedTime = order.submittedAt?.toDate ? order.submittedAt.toDate() : new Date(order.submittedAt);
+              const completedTime = order.completedAt?.toDate ? order.completedAt.toDate() : new Date(order.completedAt);
 
-            // Only include reasonable times (1-30 minutes) to filter out anomalies
-            if (prepTimeMinutes > 0 && prepTimeMinutes <= 30) {
-              prepTimes.push(prepTimeMinutes);
+              // Calculate prep time in minutes
+              const prepTimeMs = completedTime - submittedTime;
+              const prepTimeMinutes = prepTimeMs / (1000 * 60);
+
+              // Only include reasonable times (1-30 minutes) to filter out anomalies
+              if (prepTimeMinutes > 0 && prepTimeMinutes <= 30) {
+                prepTimes.push(prepTimeMinutes);
+              }
             }
-          }
-        });
-
-        // If we have valid prep times, calculate average
-        if (prepTimes.length > 0) {
-          const totalTime = prepTimes.reduce((sum, time) => sum + time, 0);
-          avgPrepTimeMinutes = totalTime / prepTimes.length;
-          calculatedFromActualData = true;
-
-          console.log(`📊 Wait time calculated from ${prepTimes.length} recent orders:`, {
-            prepTimes: prepTimes.map(t => t.toFixed(1) + 'min'),
-            average: avgPrepTimeMinutes.toFixed(1) + 'min'
           });
+
+          // If we have valid prep times, calculate average
+          if (prepTimes.length > 0) {
+            const totalTime = prepTimes.reduce((sum, time) => sum + time, 0);
+            avgPrepTimeMinutes = totalTime / prepTimes.length;
+            calculatedFromActualData = true;
+
+            console.log(`📊 Wait time calculated from ${prepTimes.length} recent orders:`, {
+              prepTimes: prepTimes.map(t => t.toFixed(1) + 'min'),
+              average: avgPrepTimeMinutes.toFixed(1) + 'min'
+            });
+          }
         }
+      }
+
+      // Calculate queue length - only count orders submitted BEFORE this order
+      let queueLength;
+      if (orderTimestamp) {
+        // Count orders that were submitted before this order
+        queueLength = submittedOrders.filter(order => {
+          const orderTime = order.submittedAt?.toDate ? order.submittedAt.toDate() : new Date(order.submittedAt);
+          return orderTime < orderTimestamp;
+        }).length;
+        console.log(`📊 Queue length: ${queueLength} orders ahead of this one`);
+      } else {
+        // If no timestamp provided, use total queue (for general estimates)
+        queueLength = submittedOrders.length;
       }
 
       // If no historical data, use intelligent defaults based on queue
       if (!calculatedFromActualData) {
-        const queueLength = submittedOrders.length;
         if (queueLength === 0) {
           avgPrepTimeMinutes = 4;
         } else if (queueLength <= 2) {
@@ -617,7 +662,6 @@ export const OrderProvider = ({ children }) => {
       }
 
       // Calculate total wait time
-      const queueLength = submittedOrders.length;
 
       // Base prep time for the new order + time for orders ahead in queue
       // Assume orders ahead will take the same average time
@@ -688,6 +732,7 @@ export const OrderProvider = ({ children }) => {
     clearTotalDonations,
     clearAllHistory,
     getOrdersByPhone,
+    getActiveOrdersByPhone,
     submitReview,
     getAllReviews,
     toggleDrinkStock,
