@@ -12,7 +12,7 @@ export const DRINKS = [
   {
     id: "gingerbread-latte",
     image: "/gingerbread-fx7.png",
-    drinkName: "Gingerbread Latte",
+    drinkName: "Chatpat(Gingerbread) Latte 🐻",
     description: "Warm spices with sweet molasses and ginger",
     category: "coffee"
   },
