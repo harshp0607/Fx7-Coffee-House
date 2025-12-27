@@ -235,6 +235,8 @@ const Frame2 = () => {
                               onConfirm: async () => {
                                 try {
                                   await verifyDonation(order.id, order.donation, order.userInfo.name);
+                                  // Add to cleared list to remove from view
+                                  setClearedDonationIds([...clearedDonationIds, order.id]);
                                   setConfirmDialog({ ...confirmDialog, isOpen: false });
                                   alert("Donation verified successfully!");
                                 } catch (error) {
