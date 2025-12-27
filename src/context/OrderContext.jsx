@@ -11,6 +11,7 @@ import {
   serverTimestamp,
   updateDoc,
   getDocs,
+  getDoc,
   where,
   writeBatch
 } from "firebase/firestore";
@@ -275,21 +276,24 @@ export const OrderProvider = ({ children }) => {
     try {
       console.log("Verifying donation:", { orderId, amount, customerName });
 
-      // Check if the document exists first
-      const orderRef = doc(db, "completedOrders", orderId);
-      const orderDoc = await getDocs(query(collection(db, "completedOrders")));
+      // Check both active orders and completed orders collections
+      let orderRef = doc(db, "orders", orderId);
+      let orderSnapshot = await getDoc(orderRef);
 
-      console.log("All completed order IDs:", orderDoc.docs.map(d => d.id));
-      console.log("Looking for order ID:", orderId);
+      let isActiveOrder = orderSnapshot.exists();
 
-      const exists = orderDoc.docs.some(d => d.id === orderId);
+      // If not in active orders, check completed orders
+      if (!isActiveOrder) {
+        orderRef = doc(db, "completedOrders", orderId);
+        orderSnapshot = await getDoc(orderRef);
 
-      if (!exists) {
-        console.error("Document not found in completedOrders collection!");
-        console.error("Order ID:", orderId);
-        console.error("Available IDs:", orderDoc.docs.map(d => d.id));
-        throw new Error(`Order document ${orderId} not found in completedOrders collection`);
+        if (!orderSnapshot.exists()) {
+          console.error("Order not found in either collection!");
+          throw new Error(`Order document ${orderId} not found`);
+        }
       }
+
+      console.log(`Found order in ${isActiveOrder ? 'active orders' : 'completed orders'}`);
 
       // Mark the order's donation as verified
       await updateDoc(orderRef, {
