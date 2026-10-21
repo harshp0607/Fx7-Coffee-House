@@ -3,14 +3,10 @@ import HolidayHeader from "../components/HolidayHeader";
 import DrinksGrid from "../components/DrinksGrid";
 import { useOrder } from "../context/OrderContext";
 
-const SectionHeading = ({ eyebrow, title, count }) => (
-  <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 13 }}>
-    <div>
-      <span className="eyebrow" style={{ marginBottom: 5 }}>{eyebrow}</span>
-      <h2 style={{ fontSize: 22, fontWeight: 500, letterSpacing: "-0.04em" }}>{title}</h2>
-    </div>
-    <span style={{ color: "var(--muted)", fontSize: 10 }}>{count} drinks</span>
-  </div>
+const ChevronRight = () => (
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+    <path d="M6 4l4 3.5L6 11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
 );
 
 const Frame = () => {
@@ -21,24 +17,36 @@ const Frame = () => {
     <div className="page-container">
       <HolidayHeader />
 
-      {/* Fall Coffees */}
-      <section style={{ padding: "0 20px 32px" }}>
-        <SectionHeading eyebrow="Made for the season" title="Fall Coffees" count={4} />
-        <DrinksGrid category="coffee" />
-      </section>
+      <main className="screen menu-screen">
+        {/* Fall Coffees */}
+        <section className="menu-section">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow" style={{ marginBottom: 5 }}>Made for the season</span>
+              <h2>Fall Coffees</h2>
+            </div>
+            <span className="count">4 drinks</span>
+          </div>
+          <DrinksGrid category="coffee" />
+        </section>
 
-      {/* Other Fall Favorites */}
-      <section style={{ padding: "0 20px 32px" }}>
-        <SectionHeading eyebrow="Beyond the espresso" title="Other Fall Favorites" count={2} />
-        <DrinksGrid category="other" />
-      </section>
+        {/* Other Fall Favorites */}
+        <section className="menu-section">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow" style={{ marginBottom: 5 }}>Beyond the espresso</span>
+              <h2>Other Fall Favorites</h2>
+            </div>
+            <span className="count">2 drinks</span>
+          </div>
+          <DrinksGrid category="other" />
+        </section>
 
-      {/* View Order CTA */}
-      <div style={{ padding: "0 20px 40px" }}>
+        {/* View Order CTA */}
         <button
           onClick={() => navigate("/checkout")}
-          className="btn-primary"
-          style={{ position: "relative" }}
+          className="primary-btn"
+          style={{ position: "relative", marginBottom: 16 }}
         >
           View Order
           {orderCount > 0 && (
@@ -51,17 +59,12 @@ const Frame = () => {
             }}>{orderCount}</span>
           )}
         </button>
-      </div>
 
-      {/* Staff link */}
-      <div style={{ textAlign: "center", paddingBottom: 32 }}>
-        <button
-          onClick={() => navigate("/dashboard")}
-          style={{ border: 0, background: "none", color: "var(--muted)", fontSize: 11, display: "inline-flex", alignItems: "center", gap: 4 }}
-        >
-          Barista view →
+        {/* Staff link */}
+        <button className="staff-link" onClick={() => navigate("/dashboard")}>
+          Barista view <ChevronRight />
         </button>
-      </div>
+      </main>
     </div>
   );
 };

@@ -26,6 +26,17 @@ const User = () => (
     <path d="M3 14c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
   </svg>
 );
+const Leaf = () => (
+  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+    <path d="M2 13C3 10 5 6 13 2C9 2 4 5 2 13Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+    <path d="M2 13L8 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+  </svg>
+);
+const ArrowRight = () => (
+  <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+    <path d="M3 8.5h11M10 5l4 3.5L10 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
 
 const Frame3 = () => {
   const navigate = useNavigate();
@@ -48,25 +59,21 @@ const Frame3 = () => {
 
   return (
     <div className="page-container">
-      {/* Intro */}
-      <div style={{ padding: "24px 20px 20px" }}>
-        <span className="eyebrow" style={{ marginBottom: 6 }}>Almost there</span>
-        <h1 style={{ fontSize: 34, fontWeight: 500, letterSpacing: "-0.04em", margin: "0 0 10px" }}>Make it yours.</h1>
-        <p style={{ color: "var(--muted)", fontSize: 13, lineHeight: 1.5 }}>
-          Fill in your details and we'll text you when your order is ready.
-        </p>
-      </div>
-
-      <div style={{ padding: "0 20px 40px", display: "flex", flexDirection: "column", gap: 10 }}>
+      <main className="screen checkout-screen">
+        <div className="checkout-intro">
+          <span className="eyebrow">Almost there</span>
+          <h1>Make it yours.</h1>
+          <p>Fill in your details and we'll text you when your order is ready.</p>
+        </div>
 
         {/* Your Details */}
-        <div className="card" style={{ padding: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <span style={{ color: "var(--clay)" }}><User /></span>
-            <h2 style={{ fontSize: 14, fontWeight: 700, letterSpacing: "-0.01em" }}>Your details</h2>
+        <section className="form-card">
+          <div className="card-title">
+            <User />
+            <h2>Your details</h2>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 8 }}>
-            <label style={{ color: "var(--muted)", fontSize: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+          <div className="input-row">
+            <label>
               First name
               <input
                 placeholder="Alex"
@@ -74,7 +81,7 @@ const Frame3 = () => {
                 onChange={e => setUserInfo({ ...userInfo, name: e.target.value })}
               />
             </label>
-            <label style={{ color: "var(--muted)", fontSize: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+            <label>
               Phone number
               <input
                 type="tel"
@@ -94,54 +101,50 @@ const Frame3 = () => {
               />
             </label>
           </div>
-          <label style={{ display: "flex", gap: 8, alignItems: "center", color: "var(--muted)", fontSize: 10, marginTop: 4 }}>
+          <label className="check-row">
             <input
               type="checkbox"
               checked={smsConsent}
               onChange={e => setSmsConsent(e.target.checked)}
-              style={{ width: 14, accentColor: "var(--clay)", flexShrink: 0 }}
             />
             Text me when my order is ready
           </label>
-        </div>
+        </section>
 
         {/* Your Order */}
-        <div className="card" style={{ padding: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <span style={{ color: "var(--clay)" }}><ShoppingBag /></span>
-            <h2 style={{ fontSize: 14, fontWeight: 700 }}>
-              Your order{" "}
-              <span style={{ color: "var(--muted)", fontSize: 10, fontWeight: 400 }}>{orders.length} items</span>
-            </h2>
+        <section className="form-card">
+          <div className="card-title">
+            <ShoppingBag />
+            <h2>Your order <span>{orders.length} items</span></h2>
           </div>
           {orders.length === 0 ? (
-            <p style={{ color: "var(--muted)", fontSize: 12, paddingTop: 4 }}>No items yet — go pick a drink!</p>
+            <p style={{ color: "var(--muted)", fontSize: 12 }}>No items yet — go pick a drink!</p>
           ) : (
             orders.map((order, i) => (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderTop: "1px solid var(--line)" }}>
+              <div key={i} className="order-line">
                 <div>
-                  <strong style={{ display: "block", fontSize: 12 }}>{order.drinkName}</strong>
-                  <small style={{ color: "var(--muted)", fontSize: 10 }}>{order.temperature} · {order.milkType}</small>
+                  <strong>{order.drinkName}</strong>
+                  <small>{order.temperature} · {order.milkType}</small>
                 </div>
-                <span style={{ fontSize: 11, color: "var(--sage)" }}>Free</span>
+                <span>Free</span>
               </div>
             ))
           )}
-          <div className="season-banner" style={{ marginTop: 4 }}>
-            🍂 Complimentary season — enjoy!
+          <div className="season-banner">
+            <Leaf /> Complimentary season — enjoy!
           </div>
-        </div>
+        </section>
 
         {/* Total */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 4px 4px" }}>
-          <span style={{ fontSize: 12, color: "var(--muted)" }}>Total today</span>
-          <strong style={{ fontSize: 20, fontWeight: 500 }}>Free</strong>
+        <div className="total-row">
+          <span>Total today</span>
+          <strong>Free</strong>
         </div>
 
-        <button className="btn-primary" onClick={handleSubmitOrder}>
-          Submit order →
+        <button className="primary-btn bottom-cta" onClick={handleSubmitOrder}>
+          Submit order <ArrowRight />
         </button>
-      </div>
+      </main>
     </div>
   );
 };

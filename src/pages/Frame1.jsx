@@ -14,6 +14,12 @@ const ArrowLeft = () => (
   </svg>
 );
 
+const ArrowRight = () => (
+  <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+    <path d="M3 8.5h11M10 5l4 3.5L10 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 const Frame1 = () => {
   const navigate = useNavigate();
   const { currentDrink, addToOrder, outOfStockMilk } = useOrder();
@@ -40,99 +46,88 @@ const Frame1 = () => {
         <button className="icon-btn" onClick={() => navigate("/")} aria-label="Go back">
           <ArrowLeft />
         </button>
-        <span style={{ fontWeight: 800, fontSize: 13, letterSpacing: "0.08em", color: "var(--espresso)" }}>FX7</span>
-        <div style={{ width: 34 }} />
+        <div className="logo-mark">
+          <span>FX7</span>
+        </div>
+        <div className="header-spacer" />
       </header>
 
-      {/* Drink photo */}
-      <div style={{ height: 260, position: "relative", overflow: "hidden", background: "var(--cream)", margin: "0" }}>
-        <img
-          src={currentDrink?.image || "/coffee-latte.png"}
-          alt={currentDrink?.drinkName || "Drink"}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(0deg, rgba(39,27,20,0.45), transparent 45%)",
-        }} />
-        <span style={{
-          position: "absolute", bottom: 16, left: 20,
-          color: "white", fontSize: 10,
-          border: "1px solid rgba(255,255,255,0.5)",
-          padding: "6px 10px", borderRadius: 20,
-        }}>Complimentary</span>
-      </div>
+      <main className="screen detail-screen">
+        {/* Drink photo */}
+        <div className="detail-photo">
+          <img
+            src={currentDrink?.image || "/coffee-latte.png"}
+            alt={currentDrink?.drinkName || "Drink"}
+          />
+          <div className="photo-overlay" />
+          <span className="image-badge">Complimentary</span>
+        </div>
 
-      {/* Body */}
-      <div style={{ padding: "24px 20px 40px", display: "flex", flexDirection: "column", gap: 24 }}>
-        <div>
+        {/* Body */}
+        <div className="detail-body">
           <span className="eyebrow">{currentDrink?.category === "coffee" ? "Fall Coffee" : "Fall Favorite"}</span>
-          <h1 style={{ fontSize: 32, fontWeight: 500, letterSpacing: "-0.04em", margin: "8px 0 10px" }}>
-            {currentDrink?.drinkName || "Select a drink"}
-          </h1>
-          <p style={{ color: "var(--muted)", fontSize: 13, lineHeight: 1.55 }}>
+          <h1>{currentDrink?.drinkName || "Select a drink"}</h1>
+          <p className="detail-description">
             {currentDrink?.description}. A thoughtful little ritual for crisp mornings and slow afternoons.
           </p>
-        </div>
 
-        {/* Temperature */}
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, fontWeight: 700, marginBottom: 10 }}>
-            <span>Temperature</span>
-            <span style={{ color: "var(--muted)", fontSize: 10, fontWeight: 400 }}>Choose one</span>
-          </div>
-          <div className="segmented" style={{ gridTemplateColumns: `repeat(${temps.length}, 1fr)` }}>
-            {temps.map(t => (
-              <button
-                key={t}
-                className={customization.temperature === t ? "active" : ""}
-                onClick={() => setCustomization({ ...customization, temperature: t })}
-              >{t}</button>
-            ))}
-          </div>
-        </div>
-
-        {/* Milk */}
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, fontWeight: 700, marginBottom: 10 }}>
-            <span>Milk</span>
-            <span style={{ color: "var(--muted)", fontSize: 10, fontWeight: 400 }}>Choose one</span>
-          </div>
-          <div className="chip-grid">
-            {milks.map(m => {
-              const disabled = outOfStockMilk.includes(m);
-              return (
+          {/* Temperature */}
+          <div className="option-block">
+            <div className="option-label">
+              <span>Temperature</span>
+              <span className="option-hint">Choose one</span>
+            </div>
+            <div className="segmented" style={{ gridTemplateColumns: `repeat(${temps.length}, 1fr)` }}>
+              {temps.map(t => (
                 <button
-                  key={m}
-                  className={customization.milkType === m ? "active" : ""}
-                  onClick={() => !disabled && setCustomization({ ...customization, milkType: m })}
-                  style={{ opacity: disabled ? 0.4 : 1, cursor: disabled ? "not-allowed" : "pointer" }}
-                >
-                  {m}
-                  {customization.milkType === m && <Check />}
-                </button>
-              );
-            })}
+                  key={t}
+                  className={customization.temperature === t ? "active" : ""}
+                  onClick={() => setCustomization({ ...customization, temperature: t })}
+                >{t}</button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Note */}
-        <div>
-          <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 8 }}>
+          {/* Milk */}
+          <div className="option-block">
+            <div className="option-label">
+              <span>Milk</span>
+              <span className="option-hint">Choose one</span>
+            </div>
+            <div className="chip-grid">
+              {milks.map(m => {
+                const disabled = outOfStockMilk.includes(m);
+                return (
+                  <button
+                    key={m}
+                    className={customization.milkType === m ? "active" : ""}
+                    onClick={() => !disabled && setCustomization({ ...customization, milkType: m })}
+                    style={{ opacity: disabled ? 0.4 : 1, cursor: disabled ? "not-allowed" : "pointer" }}
+                  >
+                    {m}
+                    {customization.milkType === m && <Check />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Note */}
+          <label className="note-label">
             Optional note
+            <textarea
+              placeholder="Anything we should know?"
+              rows={2}
+              value={customization.specialInstructions}
+              onChange={e => setCustomization({ ...customization, specialInstructions: e.target.value })}
+            />
           </label>
-          <textarea
-            placeholder="Anything we should know?"
-            rows={2}
-            value={customization.specialInstructions}
-            onChange={e => setCustomization({ ...customization, specialInstructions: e.target.value })}
-          />
-        </div>
 
-        <button className="btn-primary" onClick={handleAddToOrder}>
-          Add to order →
-        </button>
-      </div>
+          <button className="primary-btn bottom-cta" onClick={handleAddToOrder}>
+            Add to order <ArrowRight />
+          </button>
+        </div>
+      </main>
     </div>
   );
 };

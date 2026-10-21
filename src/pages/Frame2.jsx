@@ -61,12 +61,8 @@ const Frame2 = () => {
 
   return (
     <div className="page-container">
-      {/* Sticky header */}
-      <header style={{
-        height: 60, display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 20px", background: "rgba(247,244,239,0.92)", position: "sticky",
-        top: 0, zIndex: 10, backdropFilter: "blur(14px)", borderBottom: "1px solid var(--line)",
-      }}>
+      {/* Header */}
+      <header className="app-header">
         <div>
           <span className="eyebrow" style={{ marginBottom: 1 }}>Good morning, team</span>
           <div style={{ fontWeight: 700, fontSize: 14, color: "var(--espresso)", letterSpacing: "-0.02em" }}>Barista dashboard</div>
@@ -74,9 +70,9 @@ const Frame2 = () => {
         <button className="icon-btn" onClick={() => navigate("/")} aria-label="Close dashboard"><X /></button>
       </header>
 
-      <div style={{ padding: "20px 20px 0" }}>
+      <div className="screen dashboard-screen">
         {/* Stats row */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, marginBottom: 20 }}>
+        <div className="stats-grid">
           <div className="stat-card">
             <span className="stat-label">In Queue</span>
             <strong className="stat-value">{submittedOrders.length}</strong>
@@ -115,20 +111,19 @@ const Frame2 = () => {
         </div>
 
         {/* Tabs */}
-        <div className="tab-container">
+        <div className="dashboard-tabs">
           {tabs.map(t => (
             <button
               key={t.key}
-              className={`tab ${activeTab === t.key ? "tab-active" : "tab-inactive"}`}
+              className={activeTab === t.key ? "active" : ""}
               onClick={() => setActiveTab(t.key)}
             >
-              {t.label}{t.count !== null ? <span style={{ marginLeft: 5, color: "var(--clay)", fontSize: 10 }}>{t.count}</span> : null}
+              {t.label}{t.count !== null ? <span>{t.count}</span> : null}
             </button>
           ))}
         </div>
-      </div>
 
-      <div className="content-section">
+        <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingTop: 4 }}>
 
         {/* ── Active orders ── */}
         {activeTab === "active" && (
@@ -172,7 +167,7 @@ const Frame2 = () => {
                       )}
                     </div>
 
-                    <button className="btn-success" style={{ width: "100%" }} onClick={() => markOrderAsReady(order.id)}>
+                    <button className="ready-btn" style={{ width: "100%", justifyContent: "center", padding: "10px" }} onClick={() => markOrderAsReady(order.id)}>
                       Mark ready ✓
                     </button>
                   </div>

@@ -64,15 +64,17 @@ function App() {
 
   return (
     <OrderProvider>
-      <Navigation />
-      <Routes>
-        <Route path="/" element={<Frame />} />
-        <Route path="/customize" element={<Frame1 />} />
-        <Route path="/dashboard" element={<DashboardLogin />} />
-        <Route path="/checkout" element={<Frame3 />} />
-        <Route path="/my-orders" element={<MyOrders />} />
-        <Route path="/order-confirmation" element={<OrderConfirmation />} />
-      </Routes>
+      <div className="app-shell">
+        <Navigation />
+        <Routes>
+          <Route path="/" element={<Frame />} />
+          <Route path="/customize" element={<Frame1 />} />
+          <Route path="/dashboard" element={<DashboardLogin />} />
+          <Route path="/checkout" element={<Frame3 />} />
+          <Route path="/my-orders" element={<MyOrders />} />
+          <Route path="/order-confirmation" element={<OrderConfirmation />} />
+        </Routes>
+      </div>
     </OrderProvider>
   );
 }

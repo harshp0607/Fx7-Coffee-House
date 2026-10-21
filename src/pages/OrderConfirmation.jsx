@@ -8,6 +8,12 @@ const Check = () => (
   </svg>
 );
 
+const ArrowRight = () => (
+  <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+    <path d="M3 8.5h11M10 5l4 3.5L10 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 const OrderConfirmation = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,74 +35,37 @@ const OrderConfirmation = () => {
   const firstName = userInfo.name?.split(" ")[0] || userInfo.name;
 
   return (
-    <div className="page-container" style={{ textAlign: "center", paddingTop: 52 }}>
-      <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 20px 48px", display: "flex", flexDirection: "column", alignItems: "center", gap: 0 }}>
+    <div className="page-container">
+      <main className="screen confirmation-screen">
+        <div className="success-mark"><Check /></div>
 
-        {/* Success mark */}
-        <div style={{
-          width: 60, height: 60, borderRadius: "50%",
-          background: "var(--sage)",
-          display: "grid", placeItems: "center",
-          marginBottom: 24,
-        }}>
-          <Check />
-        </div>
-
-        <span className="eyebrow" style={{ marginBottom: 10 }}>You are all set</span>
-        <h1 style={{ fontSize: 36, fontWeight: 500, letterSpacing: "-0.04em", marginBottom: 12 }}>
-          See you soon,<br />
-          <em style={{ color: "var(--clay)", fontFamily: "Georgia, serif", fontStyle: "italic", fontWeight: 400 }}>
-            {firstName}.
-          </em>
-        </h1>
-        <p style={{ color: "var(--muted)", fontSize: 13, lineHeight: 1.55, maxWidth: 280, marginBottom: 28 }}>
+        <span className="eyebrow">You are all set</span>
+        <h1>See you soon,<br /><em>{firstName}.</em></h1>
+        <p className="confirmation-copy">
           Your order is in. We'll text you when it's ready for pickup.
         </p>
 
-        {/* Wait card */}
-        <div style={{
-          background: "var(--cream)",
-          borderRadius: 12,
-          padding: "20px 24px",
-          width: "100%",
-          marginBottom: 12,
-          textAlign: "center",
-        }}>
-          <span style={{ display: "block", color: "var(--muted)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 700 }}>
-            Estimated wait
-          </span>
-          <strong style={{ display: "block", fontSize: 36, fontWeight: 500, letterSpacing: "-0.03em", margin: "4px 0 6px" }}>
-            {waitTime ? waitTime.displayText : "~10 min"}
-          </strong>
-          <span style={{ color: "var(--muted)", fontSize: 10, letterSpacing: "0.05em" }}>
-            Order #{orderData.orderNumber || "—"}
-          </span>
+        <div className="wait-card">
+          <span>Estimated wait</span>
+          <strong>{waitTime ? waitTime.displayText : "~10 min"}</strong>
+          <span className="order-number">Order #{orderData.orderNumber || "—"}</span>
         </div>
 
-        {/* Order summary */}
-        <div style={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-          padding: "14px 0 20px",
-          borderBottom: "1px solid var(--line)",
-          marginBottom: 20,
-          fontSize: 11,
-          textAlign: "left",
-        }}>
+        <div className="summary-mini">
           <span>{orderData.items?.length} drink{orderData.items?.length !== 1 ? "s" : ""}</span>
-          <span style={{ color: "var(--muted)", textAlign: "right", maxWidth: 200 }}>
-            {orderData.items?.map(i => i.drinkName).join(" · ")}
-          </span>
+          <span>{orderData.items?.map(i => i.drinkName).join(" · ")}</span>
         </div>
 
-        <button className="btn-primary" style={{ marginBottom: 8 }} onClick={() => navigate("/my-orders", { state: { phoneNumber: userInfo.phone } })}>
-          Track my order →
+        <button
+          className="primary-btn"
+          onClick={() => navigate("/my-orders", { state: { phoneNumber: userInfo.phone } })}
+        >
+          Track my order <ArrowRight />
         </button>
-        <button className="btn-secondary" onClick={() => navigate("/")}>
+        <button className="secondary-btn" onClick={() => navigate("/")}>
           Back to menu
         </button>
-      </div>
+      </main>
     </div>
   );
 };

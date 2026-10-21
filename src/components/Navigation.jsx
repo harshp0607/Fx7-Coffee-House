@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
+const CoffeeCup = () => (
+  <svg width="21" height="21" viewBox="0 0 21 21" fill="none" strokeWidth="1.8">
+    <path d="M4 9h11v7a5 5 0 01-5 5H9a5 5 0 01-5-5V9Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M15 10h1.5a2.5 2.5 0 010 5H15" stroke="currentColor" strokeLinecap="round"/>
+    <path d="M7 6V4M10.5 6V4" stroke="currentColor" strokeLinecap="round"/>
+  </svg>
+);
 const House = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
     <path d="M2 8L9 2L16 8V16H11V12H7V16H2V8Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
@@ -25,7 +32,7 @@ const Coffee = () => (
     <path d="M6 5V3M9 5V3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
   </svg>
 );
-const Menu = () => (
+const MenuIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
     <path d="M3 5h12M3 9h12M3 13h12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
   </svg>
@@ -78,10 +85,10 @@ const Navigation = () => {
       {/* Sticky top header */}
       <header className="app-header">
         <button className="icon-btn" onClick={() => setIsOpen(true)} aria-label="Open navigation">
-          <Menu />
+          <MenuIcon />
         </button>
         <div className="logo-mark" style={{ cursor: "pointer" }} onClick={() => handleNavigate("/")}>
-          <img src="/fx7Logo.PNG" alt="FX7" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} />
+          <CoffeeCup />
           <span>FX7</span>
         </div>
         <button className="icon-btn" onClick={() => handleNavigate("/my-orders")} aria-label="My orders">
@@ -109,8 +116,10 @@ const Navigation = () => {
         </div>
 
         <div className="drawer-intro">
+          <span className="drawer-kicker"><Leaf /> Fall '26 · FX7</span>
           <span className="eyebrow">Your coffee house</span>
           <h2>Where should we<br /><em>go next?</em></h2>
+          <p>Warm drinks, kind moments, right this way.</p>
         </div>
 
         <nav className="drawer-nav">
@@ -125,14 +134,14 @@ const Navigation = () => {
                 <strong>{label}</strong>
                 <small>{hint}</small>
               </span>
-              <span className="drawer-chevron"><ChevronRight /></span>
+              <ChevronRight />
             </button>
           ))}
         </nav>
 
         <div className="drawer-footer">
           <Leaf />
-          <span>Grab a cup, enjoy the season.</span>
+          <span>Every cup, a warm moment.</span>
         </div>
       </aside>
     </>

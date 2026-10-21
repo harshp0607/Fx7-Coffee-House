@@ -2,7 +2,13 @@ import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import { useOrder } from "../context/OrderContext";
 
-const DrinkCard1 = ({ className = "", image, drinkName, description, outOfStock = false }) => {
+const ArrowRight = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <path d="M2 6h8M7 3l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const DrinkCard1 = ({ className = "", image, drinkName, description, outOfStock = false, tag }) => {
   const navigate = useNavigate();
   const { selectDrink } = useOrder();
 
@@ -18,31 +24,16 @@ const DrinkCard1 = ({ className = "", image, drinkName, description, outOfStock 
   return (
     <button
       onClick={handleClick}
-      className={className}
+      className={`drink-card${className ? ` ${className}` : ""}`}
       style={{
-        padding: 0,
-        overflow: "hidden",
-        textAlign: "left",
-        border: "1px solid var(--line)",
-        background: "var(--card)",
-        borderRadius: 10,
-        color: "var(--fg)",
         cursor: outOfStock ? "not-allowed" : "pointer",
         opacity: outOfStock ? 0.5 : 1,
         filter: outOfStock ? "grayscale(1)" : "none",
-        transition: "border-color 0.15s",
-        width: "100%",
       }}
-      onMouseEnter={e => { if (!outOfStock) e.currentTarget.style.borderColor = "#d0c4b4"; }}
-      onMouseLeave={e => e.currentTarget.style.borderColor = "var(--line)"}
     >
       {/* Photo */}
-      <div style={{ height: 120, position: "relative", overflow: "hidden", background: "var(--cream)" }}>
-        <img
-          alt={drinkName}
-          src={image}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
+      <div className="drink-photo">
+        <img alt={drinkName} src={image} />
         {outOfStock && (
           <div style={{
             position: "absolute", inset: 0,
@@ -55,15 +46,14 @@ const DrinkCard1 = ({ className = "", image, drinkName, description, outOfStock 
       </div>
 
       {/* Copy */}
-      <div style={{ padding: "11px 11px 13px" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 4, minHeight: 34 }}>
-          <h3 style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.15, letterSpacing: "-0.02em" }}>{drinkName}</h3>
+      <div className="drink-card-copy">
+        <div className="drink-title-row">
+          <h3>{drinkName}</h3>
+          {tag && <span className="mini-tag">{tag}</span>}
         </div>
-        <p style={{ color: "var(--muted)", fontSize: 10, lineHeight: 1.4, margin: "5px 0 10px", minHeight: 26 }}>
-          {description}
-        </p>
-        <span style={{ color: "var(--clay)", display: "flex", gap: 3, alignItems: "center", fontSize: 10, fontWeight: 700 }}>
-          {outOfStock ? "Unavailable" : "Complimentary →"}
+        <p>{description}</p>
+        <span className="complimentary">
+          {outOfStock ? "Unavailable" : <>Complimentary <ArrowRight /></>}
         </span>
       </div>
     </button>
@@ -76,6 +66,7 @@ DrinkCard1.propTypes = {
   drinkName: PropTypes.string,
   description: PropTypes.string,
   outOfStock: PropTypes.bool,
+  tag: PropTypes.string,
 };
 
 export default DrinkCard1;
