@@ -36,8 +36,8 @@ const Frame1 = () => {
     }
   };
 
-  const temps = ["Hot", "Iced", "Blended"];
-  const milks = ["Whole Milk", "Oat Milk", "Almond Milk", "Skim Milk", "None"];
+  const temps = ["Hot", "Iced"];
+  const milks = ["Whole Milk", "Oat Milk"];
 
   return (
     <div className="page-container">
