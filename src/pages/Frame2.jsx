@@ -376,6 +376,7 @@ const Frame2 = () => {
             </div>
           </>
         )}
+        </div>
       </div>
 
       <ConfirmDialog
