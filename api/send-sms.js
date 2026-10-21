@@ -84,8 +84,6 @@ Your order is ready for pickup at FX7 Coffee House!
 
 ${itemsList ? `Order:\n${itemsList}\n\n` : ''}Please come to the counter to pick up your order.
 
-Thank you for supporting Feeding America with your purchase! 💚
-
 - FX7 Coffee House`;
 
     // Log the attempt

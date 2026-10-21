@@ -16,7 +16,6 @@ const OrderConfirmation = () => {
 
   const orderData = location.state?.orderData;
   const userInfo = location.state?.userInfo;
-  const donation = location.state?.donation;
 
   useEffect(() => {
     if (!orderData || !userInfo) { navigate("/"); return; }
@@ -90,24 +89,6 @@ const OrderConfirmation = () => {
             {orderData.items?.map(i => i.drinkName).join(" · ")}
           </span>
         </div>
-
-        {donation > 0 && (
-          <div style={{
-            width: "100%",
-            background: "var(--card)",
-            border: "1px solid var(--line)",
-            borderRadius: 10,
-            padding: "12px 16px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 20,
-            fontSize: 12,
-          }}>
-            <span style={{ color: "var(--muted)" }}>Donation to Feeding America</span>
-            <strong>${donation.toFixed(2)}</strong>
-          </div>
-        )}
 
         <button className="btn-primary" style={{ marginBottom: 8 }} onClick={() => navigate("/my-orders", { state: { phoneNumber: userInfo.phone } })}>
           Track my order →
