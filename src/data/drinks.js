@@ -3,45 +3,45 @@
 
 export const DRINKS = [
   {
-    id: "peppermint-mocha",
-    image: "/peppermint-fx7.png",
-    drinkName: "Peppermint Mocha Latte",
-    description: "Dark chocolate with cool peppermint",
+    id: "pumpkin-spice-latte",
+    image: "/pumpkin-spice-fx7.png",
+    drinkName: "Pumpkin Spice Latte",
+    description: "Warm pumpkin with cinnamon, nutmeg, and a hint of clove",
     category: "coffee"
   },
   {
-    id: "gingerbread-latte",
-    image: "/gingerbread-fx7.png",
-    drinkName: "Chatpat(Gingerbread) Latte 🐻",
-    description: "Warm spices with sweet molasses and ginger",
+    id: "apple-cider-latte",
+    image: "/apple-cider-fx7.png",
+    drinkName: "Apple Cider Latte",
+    description: "Crisp apple cider blended with espresso and fall spices",
     category: "coffee"
   },
   {
-    id: "cayenne-mocha-latte",
-    image: "/cayenne-fx7.png",
-    drinkName: "Cayenne Mocha Latte",
-    description: "The same chocolatey goodness with a spicy kick",
+    id: "maple-brown-sugar-latte",
+    image: "/maple-fx7.png",
+    drinkName: "Maple Brown Sugar Latte",
+    description: "Rich maple syrup with toasted brown sugar and espresso",
     category: "coffee"
   },
   {
-    id: "egg-nog-latte",
-    image: "/eggnog-fx7.png",
-    drinkName: "Egg Nog Latte",
-    description: "Holiday classic with rich egg nog and warm spices",
+    id: "salted-caramel-latte",
+    image: "/caramel-fx7.png",
+    drinkName: "Salted Caramel Latte",
+    description: "Buttery caramel with a touch of sea salt and espresso",
     category: "coffee"
   },
   {
-    id: "gingerbread-matcha",
-    image: "/gingerbread-matcha-fx7.png",
-    drinkName: "Gingerbread Matcha Latte",
-    description: "Creamy matcha with gingerbread spices",
+    id: "chai-latte",
+    image: "/chai-fx7.png",
+    drinkName: "Harvest Chai Latte",
+    description: "Bold chai spices with cardamom, ginger, and steamed milk",
     category: "other"
   },
   {
-    id: "hot-chocolate",
-    image: "/hot-chocolate-fx7.png",
-    drinkName: "Hot Chocolate",
-    description: "Rich and creamy hot chocolate",
+    id: "apple-cider",
+    image: "/cider-fx7.png",
+    drinkName: "Warm Apple Cider",
+    description: "Classic warm cider with cinnamon sticks and orange zest",
     category: "other"
   }
 ];

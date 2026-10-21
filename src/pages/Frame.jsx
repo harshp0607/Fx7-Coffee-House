@@ -8,7 +8,7 @@ const Frame = () => {
   const { orderCount, totalDonations } = useOrder();
 
   return (
-    <div className="w-full relative bg-gradient-to-br from-sage-100 via-cream-200 to-pine-100 flex flex-col items-center min-h-screen text-left text-[1.25rem] font-inter">
+    <div className="w-full relative flex flex-col items-center min-h-screen text-left text-[1.25rem] font-inter" style={{background: 'linear-gradient(135deg, #faefd8 0%, #f4e8d4 50%, #fde5cc 100%)'}}>
       <div className="w-full max-w-[1400px] flex flex-col items-start">
         <HolidayHeader />
 
@@ -27,13 +27,13 @@ const Frame = () => {
 
         {/* Coffee Section */}
         <div className="self-stretch flex flex-col items-start py-[2rem] px-[1.5rem] sm:px-[1rem] md:px-[2rem] lg:px-[3rem] gap-[1.5rem] bg-gradient-to-b from-transparent to-white/40">
-          <b className="self-stretch relative text-pine-700 text-[1.75rem] tracking-tight drop-shadow-sm">Seasonal Coffees</b>
+          <b className="self-stretch relative text-pine-700 text-[1.75rem] tracking-tight drop-shadow-sm">🍁 Fall Coffees</b>
           <DrinksGrid category="coffee" />
         </div>
 
         {/* Other Seasonal Favorites Section */}
         <div className="self-stretch flex flex-col items-start py-[1rem] px-[1.5rem] sm:px-[1rem] md:px-[2rem] lg:px-[3rem] gap-[1.5rem] bg-gradient-to-b from-white/40 to-white/60">
-          <b className="self-stretch relative text-pine-700 text-[1.75rem] tracking-tight drop-shadow-sm">Other Seasonal Favorites</b>
+          <b className="self-stretch relative text-pine-700 text-[1.75rem] tracking-tight drop-shadow-sm">🍂 Other Fall Favorites</b>
           <DrinksGrid category="other" />
         </div>
         <div className="self-stretch bg-gradient-to-t from-cream-100 to-white/60 flex flex-col items-start pt-[1.5rem] px-[1.5rem] sm:px-[1rem] md:px-[2rem] lg:px-[3rem] pb-[2.5rem] text-[1rem] text-white">

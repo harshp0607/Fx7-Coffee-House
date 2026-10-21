@@ -58,36 +58,21 @@ const Frame3 = () => {
     const donation = getDonationAmount();
 
     try {
-      if (donation > 0) {
-        openVenmo();
-        // Wait a bit for Venmo to open, then submit order
-        setTimeout(async () => {
-          const submittedOrder = await submitOrder(userInfo, donation);
-          navigate("/order-confirmation", {
-            state: {
-              orderData: submittedOrder,
-              userInfo,
-              donation,
-            },
-          });
-        }, 2000);
-      } else {
-        const submittedOrder = await submitOrder(userInfo, donation);
-        navigate("/order-confirmation", {
-          state: {
-            orderData: submittedOrder,
-            userInfo,
-            donation,
-          },
-        });
-      }
+      const submittedOrder = await submitOrder(userInfo, donation);
+      navigate("/order-confirmation", {
+        state: {
+          orderData: submittedOrder,
+          userInfo,
+          donation,
+        },
+      });
     } catch (error) {
       console.error("Error submitting order:", error);
       alert("Failed to submit order. Please try again.");
     }
   };
 
-  const inputClass = "w-full rounded-xl bg-gradient-to-r from-cream-100 to-sage-50 border-2 border-sage-300 py-4 px-5 text-lg text-pine-700 font-medium placeholder:text-cocoa-400 outline-none focus:border-pine-500 focus:bg-white focus:shadow-lg transition-all";
+  const inputClass = "w-full rounded-xl bg-gradient-to-r from-cream-100 to-sage-50 border-2 border-sage-300 py-4 px-5 text-lg text-pine-700 font-medium placeholder:text-cocoa-400 outline-none focus:border-pine-400 focus:bg-white focus:shadow-lg transition-all";
   const donationButtonClass = (isSelected) => `flex-1 rounded-xl border-[3px] p-5 cursor-pointer transition-all text-center ${
     isSelected
       ? "bg-gradient-to-br from-pine-500 to-pine-600 border-pine-600 text-white shadow-xl"
@@ -120,8 +105,24 @@ const Frame3 = () => {
             <input
               type="tel"
               value={userInfo.phone}
-              onChange={(e) => setUserInfo({ ...userInfo, phone: e.target.value })}
-              placeholder="Enter your phone number"
+              onChange={(e) => {
+                let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+                // If user starts typing and hasn't added country code, we'll add +1 on blur
+                setUserInfo({ ...userInfo, phone: value });
+              }}
+              onBlur={(e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                // Auto-add +1 for US numbers (10 digits)
+                if (value.length === 10) {
+                  value = '+1' + value;
+                } else if (value.length === 11 && value.startsWith('1')) {
+                  value = '+' + value;
+                } else if (value.length > 0 && !value.startsWith('+')) {
+                  value = '+1' + value;
+                }
+                setUserInfo({ ...userInfo, phone: value });
+              }}
+              placeholder="(555) 123-4567"
               className={inputClass}
             />
             <div className="flex items-start gap-3">
@@ -222,27 +223,12 @@ const Frame3 = () => {
           )}
         </div>
 
-        {/* Venmo Info */}
-        {getDonationAmount() > 0 && (
-          <div className="rounded-xl bg-blue-50 border-2 border-blue-300 flex items-center gap-3 p-5">
-            <div className="text-3xl">💳</div>
-            <div className="flex-1">
-              <div className="font-bold text-blue-900 text-base">Payment via Venmo</div>
-              <div className="text-sm text-blue-700 font-medium">
-                You'll be redirected to Venmo to complete your ${getDonationAmount().toFixed(2)} donation
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Submit Button */}
         <button
           onClick={handleSubmitOrder}
           className="btn-primary btn-large w-full text-xl shadow-2xl border-2 border-pine-800 gap-3 hover:scale-[1.02]"
         >
-          <span className="font-black tracking-wide">
-            {getDonationAmount() > 0 ? "Donate & Submit Order" : "Submit Order"}
-          </span>
+          <span className="font-black tracking-wide">Submit Order</span>
           <span className="text-2xl">→</span>
         </button>
       </div>
