@@ -8,7 +8,6 @@ const DashboardLogin = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // You can change this password to whatever you want
   const DASHBOARD_PASSWORD = "fx72025";
 
   const handleSubmit = (e) => {
@@ -22,51 +21,33 @@ const DashboardLogin = () => {
     }
   };
 
-  if (isAuthenticated) {
-    return <Frame2 />;
-  }
+  if (isAuthenticated) return <Frame2 />;
 
   return (
-    <div className="page-container items-center justify-center min-h-screen">
-      <div className="w-full max-w-md">
-        <div className="card border-pine-300 p-8 gap-6 shadow-2xl">
-          <div className="flex flex-col items-center gap-4">
-            <div className="text-5xl">👨‍🍳</div>
-            <h1 className="text-3xl font-black text-pine-800 tracking-tight">Barista Dashboard</h1>
-            <p className="text-cocoa-600 font-medium text-center">Enter password to access</p>
+    <div className="page-container" style={{ alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+      <div style={{ width: "100%", maxWidth: 380, padding: "0 20px" }}>
+        <div className="card" style={{ padding: 28 }}>
+          <div style={{ textAlign: "center", marginBottom: 4 }}>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>☕</div>
+            <span className="eyebrow" style={{ marginBottom: 8 }}>Staff only</span>
+            <h1 style={{ fontSize: 26, fontWeight: 500, letterSpacing: "-0.04em", margin: "0 0 6px" }}>Barista dashboard</h1>
+            <p style={{ color: "var(--muted)", fontSize: 12 }}>Enter your password to continue</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-3">
-              <label className="font-bold text-cocoa-600">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
-                className="w-full rounded-xl bg-gradient-to-r from-cream-100 to-sage-50 border-2 border-sage-300 py-4 px-5 text-lg text-pine-700 font-medium placeholder:text-cocoa-400 outline-none focus:border-pine-500 focus:bg-white focus:shadow-lg transition-all"
-                autoFocus
-              />
-              {error && (
-                <p className="text-sm text-red-600 font-semibold">{error}</p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              className="btn-primary btn-large w-full text-xl shadow-2xl border-2 border-pine-800 gap-3 hover:scale-[1.02]"
-            >
-              <span className="font-black tracking-wide">Access Dashboard</span>
-              <span className="text-2xl">→</span>
-            </button>
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", display: "flex", flexDirection: "column", gap: 6 }}>
+              Password
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoFocus />
+            </label>
+            {error && <p style={{ fontSize: 12, color: "#c85a4a", margin: 0 }}>{error}</p>}
+            <button type="submit" className="btn-primary" style={{ marginTop: 4 }}>Access dashboard →</button>
           </form>
 
           <button
             onClick={() => navigate("/")}
-            className="btn-secondary btn-medium w-full"
-          >
-            ← Back to Home
-          </button>
+            className="btn-secondary"
+            style={{ marginTop: 8 }}
+          >← Back to menu</button>
         </div>
       </div>
     </div>

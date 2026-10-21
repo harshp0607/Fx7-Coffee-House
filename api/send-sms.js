@@ -22,6 +22,28 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Phone number is required' });
     }
 
+    // Format phone number - ensure it has +1 prefix for US numbers
+    let formattedPhone = phoneNumber.replace(/\D/g, ''); // Remove all non-digits
+
+    if (formattedPhone.length === 10) {
+      // 10 digits, add +1
+      formattedPhone = '+1' + formattedPhone;
+    } else if (formattedPhone.length === 11 && formattedPhone.startsWith('1')) {
+      // 11 digits starting with 1, add +
+      formattedPhone = '+' + formattedPhone;
+    } else if (!formattedPhone.startsWith('+')) {
+      // Any other length without +, assume US and add +1
+      formattedPhone = '+1' + formattedPhone;
+    } else {
+      // Already has +, use as-is
+      formattedPhone = phoneNumber;
+    }
+
+    console.log('Phone number formatted:', {
+      original: phoneNumber,
+      formatted: formattedPhone
+    });
+
     // Initialize Vonage client
     const apiKey = process.env.VONAGE_API_KEY;
     const apiSecret = process.env.VONAGE_API_SECRET;
@@ -68,14 +90,14 @@ Thank you for supporting Feeding America with your purchase! 💚
 
     // Log the attempt
     console.log('Attempting to send SMS:', {
-      to: phoneNumber,
+      to: formattedPhone,
       from: vonageNumber,
       messagePreview: message.substring(0, 50) + '...'
     });
 
     // Send SMS via Vonage
     const vonageResponse = await vonage.sms.send({
-      to: phoneNumber,
+      to: formattedPhone,
       from: vonageNumber,
       text: message
     });

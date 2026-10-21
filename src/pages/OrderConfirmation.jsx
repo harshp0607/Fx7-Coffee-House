@@ -2,193 +2,119 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useOrder } from "../context/OrderContext";
 
+const Check = () => (
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <path d="M5 14L11 20L23 8" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const OrderConfirmation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { getEstimatedWaitTime } = useOrder();
   const [waitTime, setWaitTime] = useState(null);
 
-  // Get order data from navigation state
   const orderData = location.state?.orderData;
   const userInfo = location.state?.userInfo;
   const donation = location.state?.donation;
 
   useEffect(() => {
-    // If no order data, redirect to home
-    if (!orderData || !userInfo) {
-      navigate("/");
-      return;
-    }
-
-    // Calculate wait time - pass the order's submission timestamp
-    // so we only count orders that were submitted before this one
-    const orderSubmittedAt = orderData.submittedAt;
-    const estimatedTime = getEstimatedWaitTime(orderSubmittedAt);
+    if (!orderData || !userInfo) { navigate("/"); return; }
+    const estimatedTime = getEstimatedWaitTime(orderData.submittedAt);
     setWaitTime(estimatedTime);
-
-    // Store phone number in localStorage for easy review access
-    if (userInfo.phone) {
-      localStorage.setItem("fx7_user_phone", userInfo.phone);
-    }
+    if (userInfo.phone) localStorage.setItem("fx7_user_phone", userInfo.phone);
   }, [orderData, userInfo, navigate, getEstimatedWaitTime]);
 
-  if (!orderData || !userInfo) {
-    return null;
-  }
+  if (!orderData || !userInfo) return null;
+
+  const firstName = userInfo.name?.split(" ")[0] || userInfo.name;
 
   return (
-    <div className="page-container items-center">
-      <div className="w-full max-w-[900px] flex flex-col">
-        <div className="page-header">
-          <h1 className="page-title">Order Confirmed!</h1>
+    <div className="page-container" style={{ textAlign: "center", paddingTop: 52 }}>
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 20px 48px", display: "flex", flexDirection: "column", alignItems: "center", gap: 0 }}>
+
+        {/* Success mark */}
+        <div style={{
+          width: 60, height: 60, borderRadius: "50%",
+          background: "var(--sage)",
+          display: "grid", placeItems: "center",
+          marginBottom: 24,
+        }}>
+          <Check />
         </div>
 
-        <div className="flex flex-col p-4 gap-3">
-          {/* Success Message */}
-          <div className="card bg-gradient-to-br from-sage-200 to-pine-200 border-pine-300 p-5 gap-3 text-center">
-            <div className="text-4xl">✓</div>
-            <h2 className="text-xl font-black text-pine-800 drop-shadow-sm">
-              Order Submitted Successfully!
-            </h2>
-            <p className="text-base text-pine-700 font-bold">
-              Thank you, {userInfo.name}!
-            </p>
-          </div>
+        <span className="eyebrow" style={{ marginBottom: 10 }}>You are all set</span>
+        <h1 style={{ fontSize: 36, fontWeight: 500, letterSpacing: "-0.04em", marginBottom: 12 }}>
+          See you soon,<br />
+          <em style={{ color: "var(--clay)", fontFamily: "Georgia, serif", fontStyle: "italic", fontWeight: 400 }}>
+            {firstName}.
+          </em>
+        </h1>
+        <p style={{ color: "var(--muted)", fontSize: 13, lineHeight: 1.55, maxWidth: 280, marginBottom: 28 }}>
+          Your order is in. We'll text you when it's ready for pickup.
+        </p>
 
-          {/* Wait Time Estimate */}
-          {waitTime && (
-            <div className="card border-sage-200 p-4 gap-2">
-              <div className="flex items-center gap-3">
-                <div className="text-3xl">⏱️</div>
-                <div className="flex-1">
-                  <h3 className="text-base font-bold text-pine-700 mb-1">
-                    Estimated Wait Time
-                  </h3>
-                  <p className="text-xl font-black text-pine-600">
-                    {waitTime.displayText}
-                  </p>
-                  {waitTime.queueLength > 0 ? (
-                    <p className="text-xs text-cocoa-500 font-medium mt-1">
-                      Your order is being prepared
-                    </p>
-                  ) : (
-                    <p className="text-xs text-cocoa-500 font-medium mt-1">
-                      No queue - we'll start right away!
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Review Prompt */}
-          <div className="card bg-gradient-to-br from-cream-100 to-sage-50 border-sage-200 p-4 gap-3">
-            <div className="flex items-start gap-3">
-              <div className="text-3xl">⭐</div>
-              <div className="flex-1">
-                <h3 className="text-base font-bold text-pine-700 mb-1">
-                  Enjoy Your Drink!
-                </h3>
-                <p className="text-sm text-cocoa-600 font-medium mb-3">
-                  After pickup, we'd love to hear about your experience!
-                </p>
-                <button
-                  onClick={() => {
-                    // Navigate to My Orders with phone pre-filled
-                    navigate("/my-orders", {
-                      state: { phoneNumber: userInfo.phone },
-                    });
-                  }}
-                  className="btn-secondary btn-small"
-                >
-                  Leave a Review Later →
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Notifications Info - COMMENTED OUT FOR NOW */}
-          {/* <div className="card bg-blue-50 border-blue-300 p-4 gap-3">
-            <div className="flex items-start gap-3">
-              <div className="text-2xl">📱</div>
-              <div className="flex-1">
-                <h3 className="font-bold text-blue-900 text-base mb-1">
-                  We'll Text You When Ready
-                </h3>
-                <p className="text-sm text-blue-700 font-medium">
-                  You'll receive a notification at{" "}
-                  <span className="font-bold">{userInfo.phone}</span> when your
-                  order is ready for pickup.
-                </p>
-              </div>
-            </div>
-          </div> */}
-
-          {/* Order Summary */}
-          <div className="card border-sage-200 p-4 gap-3">
-            <h3 className="text-lg text-pine-700 font-bold drop-shadow-sm">
-              Your Order
-            </h3>
-            <div className="flex flex-col gap-2">
-              {orderData.items.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-start justify-between py-2 border-b border-cream-200 last:border-0"
-                >
-                  <div className="flex-1 flex flex-col gap-1">
-                    <div className="font-bold text-pine-700 text-base">
-                      {item.drinkName}
-                    </div>
-                    <div className="text-sm text-cocoa-500 font-medium">
-                      {item.temperature} · {item.milkType}
-                    </div>
-                    {item.specialInstructions && (
-                      <div className="text-xs text-cocoa-400 italic">
-                        Note: {item.specialInstructions}
-                      </div>
-                    )}
-                  </div>
-                  <div className="font-bold text-sage-600 text-sm">Free</div>
-                </div>
-              ))}
-            </div>
-            {donation > 0 && (
-              <div className="rounded-xl bg-gradient-to-br from-sage-100 to-pine-100 border-2 border-sage-300 p-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-pine-700 text-base">
-                    Donation to Feeding America
-                  </span>
-                  <span className="font-black text-pine-700 text-xl">
-                    ${donation.toFixed(2)}
-                  </span>
-                </div>
-                <p className="text-xs text-pine-600 font-medium mt-1">
-                  Thank you for your generosity! 💚
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            <button
-              onClick={() => navigate("/")}
-              className="btn-primary btn-medium flex-1"
-            >
-              Back to Home
-            </button>
-            <button
-              onClick={() => {
-                navigate("/my-orders", {
-                  state: { phoneNumber: userInfo.phone },
-                });
-              }}
-              className="btn-secondary btn-medium"
-            >
-              My Orders
-            </button>
-          </div>
+        {/* Wait card */}
+        <div style={{
+          background: "var(--cream)",
+          borderRadius: 12,
+          padding: "20px 24px",
+          width: "100%",
+          marginBottom: 12,
+          textAlign: "center",
+        }}>
+          <span style={{ display: "block", color: "var(--muted)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 700 }}>
+            Estimated wait
+          </span>
+          <strong style={{ display: "block", fontSize: 36, fontWeight: 500, letterSpacing: "-0.03em", margin: "4px 0 6px" }}>
+            {waitTime ? waitTime.displayText : "~10 min"}
+          </strong>
+          <span style={{ color: "var(--muted)", fontSize: 10, letterSpacing: "0.05em" }}>
+            Order #{orderData.orderNumber || "—"}
+          </span>
         </div>
+
+        {/* Order summary */}
+        <div style={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          padding: "14px 0 20px",
+          borderBottom: "1px solid var(--line)",
+          marginBottom: 20,
+          fontSize: 11,
+          textAlign: "left",
+        }}>
+          <span>{orderData.items?.length} drink{orderData.items?.length !== 1 ? "s" : ""}</span>
+          <span style={{ color: "var(--muted)", textAlign: "right", maxWidth: 200 }}>
+            {orderData.items?.map(i => i.drinkName).join(" · ")}
+          </span>
+        </div>
+
+        {donation > 0 && (
+          <div style={{
+            width: "100%",
+            background: "var(--card)",
+            border: "1px solid var(--line)",
+            borderRadius: 10,
+            padding: "12px 16px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 20,
+            fontSize: 12,
+          }}>
+            <span style={{ color: "var(--muted)" }}>Donation to Feeding America</span>
+            <strong>${donation.toFixed(2)}</strong>
+          </div>
+        )}
+
+        <button className="btn-primary" style={{ marginBottom: 8 }} onClick={() => navigate("/my-orders", { state: { phoneNumber: userInfo.phone } })}>
+          Track my order →
+        </button>
+        <button className="btn-secondary" onClick={() => navigate("/")}>
+          Back to menu
+        </button>
       </div>
     </div>
   );

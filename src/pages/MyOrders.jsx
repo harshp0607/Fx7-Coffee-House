@@ -3,14 +3,33 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useOrder } from "../context/OrderContext";
 import StarRating from "../components/StarRating";
 
+const Search = () => (
+  <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+    <circle cx="7.5" cy="7.5" r="4.5" stroke="currentColor" strokeWidth="1.4"/>
+    <path d="M11 11L14 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+  </svg>
+);
+
+const StatusBadge = ({ status }) => {
+  const styles = {
+    "ready": { background: "#e6eee5", color: "#5d745f" },
+    "pending": { background: "#f5e9dd", color: "#a45f3d" },
+    "completed": { background: "#ece9e4", color: "#827b72" },
+  };
+  const key = status?.toLowerCase().includes("ready") ? "ready"
+    : status?.toLowerCase().includes("complet") ? "completed"
+    : "pending";
+  return (
+    <span className="badge" style={styles[key]}>{status}</span>
+  );
+};
+
 const MyOrders = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { getOrdersByPhone, getActiveOrdersByPhone, submitReview, getEstimatedWaitTime } = useOrder();
 
-  // Check for phone from navigation state or localStorage
   const initialPhone = location.state?.phoneNumber || localStorage.getItem("fx7_user_phone") || "";
-
   const [phoneNumber, setPhoneNumber] = useState(initialPhone);
   const [orders, setOrders] = useState([]);
   const [activeOrders, setActiveOrders] = useState([]);
@@ -19,21 +38,12 @@ const MyOrders = () => {
   const [reviewingOrderId, setReviewingOrderId] = useState(null);
   const [reviewData, setReviewData] = useState({ rating: 0, comment: "" });
 
-  // Auto-search if phone number is pre-filled
   useEffect(() => {
-    if (initialPhone && !hasSearched) {
-      handleSearch();
-    }
+    if (initialPhone && !hasSearched) handleSearch();
   }, [initialPhone]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const inputClass = "w-full rounded-xl bg-gradient-to-r from-cream-100 to-sage-50 border-2 border-sage-300 py-4 px-5 text-lg text-pine-700 font-medium placeholder:text-cocoa-400 outline-none focus:border-pine-500 focus:bg-white focus:shadow-lg transition-all";
-
   const handleSearch = async () => {
-    if (!phoneNumber.trim()) {
-      alert("Please enter your phone number");
-      return;
-    }
-
+    if (!phoneNumber.trim()) { alert("Please enter your phone number"); return; }
     setLoading(true);
     setHasSearched(true);
     try {
@@ -41,292 +51,194 @@ const MyOrders = () => {
       const userActiveOrders = getActiveOrdersByPhone(phoneNumber);
       setOrders(userOrders);
       setActiveOrders(userActiveOrders);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
+    } catch (err) {
+      console.error(err);
       alert("Failed to fetch orders. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStartReview = (orderId) => {
-    setReviewingOrderId(orderId);
-    const order = orders.find((o) => o.id === orderId);
-    setReviewData({
-      rating: order?.rating || 0,
-      comment: order?.reviewComment || "",
-    });
-  };
-
-  const handleCancelReview = () => {
-    setReviewingOrderId(null);
-    setReviewData({ rating: 0, comment: "" });
-  };
-
   const handleSubmitReview = async (orderId) => {
-    if (reviewData.rating === 0) {
-      alert("Please select a star rating");
-      return;
-    }
-
+    if (reviewData.rating === 0) { alert("Please select a star rating"); return; }
     try {
       await submitReview(orderId, reviewData.rating, reviewData.comment);
-      alert("Review submitted successfully!");
-
-      // Refresh orders
       const userOrders = await getOrdersByPhone(phoneNumber);
       setOrders(userOrders);
-
       setReviewingOrderId(null);
       setReviewData({ rating: 0, comment: "" });
-    } catch (error) {
-      console.error("Error submitting review:", error);
-
-      // Provide more specific error messages
-      let errorMessage = "Failed to submit review. ";
-      if (error.code === "permission-denied") {
-        errorMessage += "You don't have permission to submit reviews for this order.";
-      } else if (error.message?.includes("not found")) {
-        errorMessage += "This order could not be found.";
-      } else if (error.code === "unavailable") {
-        errorMessage += "Network error. Please check your connection and try again.";
-      } else {
-        errorMessage += "Please try again.";
-      }
-
-      alert(errorMessage);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to submit review. Please try again.");
     }
   };
 
   return (
-    <div className="page-container items-center">
-      <div className="w-full max-w-[900px] flex flex-col">
-        <div className="page-header">
-          <h1 className="text-3xl font-black tracking-tight text-pine-800">Order Status & Reviews</h1>
+    <div className="page-container">
+      {/* Header */}
+      <header className="app-header">
+        <button className="icon-btn" onClick={() => navigate("/")} aria-label="Back">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M11 4L6 9L11 14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        <span style={{ fontWeight: 800, fontSize: 13, letterSpacing: "0.08em", color: "var(--espresso)" }}>FX7</span>
+        <div style={{ width: 34 }} />
+      </header>
+
+      <div style={{ padding: "24px 20px 48px", display: "flex", flexDirection: "column", gap: 20 }}>
+
+        {/* Page heading */}
+        <div>
+          <span className="eyebrow" style={{ marginBottom: 6 }}>Your coffee trail</span>
+          <h1 style={{ fontSize: 32, fontWeight: 500, letterSpacing: "-0.04em", margin: "0 0 8px" }}>My orders</h1>
+          <p style={{ color: "var(--muted)", fontSize: 13 }}>Look up your order with the phone number you used.</p>
         </div>
 
-        <div className="content-section">
-          {/* Phone Number Input */}
-          <div className="card border-sage-200 p-7 gap-6">
-            <h2 className="text-2xl text-pine-700 font-bold drop-shadow-sm">Order Lookup</h2>
-            <div className="flex flex-col gap-3">
-              <label className="font-bold text-cocoa-600">Phone Number</label>
-              <input
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="Enter your phone number"
-                className={inputClass}
-                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-              />
+        {/* Search */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8,
+          background: "var(--card)", border: "1px solid var(--line)",
+          borderRadius: 8, padding: "5px 5px 5px 12px",
+        }}>
+          <span style={{ color: "var(--muted)" }}><Search /></span>
+          <input
+            style={{ border: 0, background: "transparent", padding: "8px 0", fontSize: 13, flex: 1, outline: "none" }}
+            placeholder="Phone number"
+            type="tel"
+            value={phoneNumber}
+            onChange={e => setPhoneNumber(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleSearch()}
+          />
+          <button
+            onClick={handleSearch}
+            disabled={loading}
+            style={{
+              border: 0, background: "var(--cream)", color: "var(--espresso)",
+              borderRadius: 5, padding: "9px 12px", fontSize: 11, fontWeight: 700,
+            }}
+          >{loading ? "..." : "Look up"}</button>
+        </div>
+
+        {/* Active orders */}
+        {hasSearched && activeOrders.length > 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span className="section-title">In queue</span>
+              <span className="badge badge-pending">{activeOrders.length} active</span>
             </div>
-            <button
-              onClick={handleSearch}
-              disabled={loading}
-              className="btn-primary btn-large w-full text-xl shadow-2xl border-2 border-pine-800 gap-3 hover:scale-[1.02]"
-            >
-              <span className="font-black tracking-wide">
-                {loading ? "Searching..." : "Check My Orders"}
-              </span>
-              <span className="text-2xl">→</span>
-            </button>
-          </div>
-
-          {/* Active Orders Section */}
-          {hasSearched && activeOrders.length > 0 && (
-            <div className="flex flex-col gap-4 w-full">
-              <div className="flex items-center justify-between gap-5 px-2">
-                <b className="section-title">Active Orders</b>
-                <div className="badge bg-green-600 text-white px-4 py-2">
-                  <b>{activeOrders.length} In Progress</b>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-4">
-                {activeOrders.map((order, index) => {
-                  // Convert Firestore Timestamp to Date for accurate queue position
-                  const orderSubmittedAt = order.submittedAt?.toDate ? order.submittedAt.toDate() : new Date(order.submittedAt);
-                  console.log(`Displaying order ${index + 1}/${activeOrders.length} - ID: ${order.id.slice(-6)}, Submitted: ${orderSubmittedAt.toLocaleTimeString()}`);
-                  const waitTime = getEstimatedWaitTime(orderSubmittedAt);
-                  return (
-                    <div key={order.id} className="card bg-gradient-to-br from-sage-50 to-pine-50 border-pine-300 border-2 p-6 gap-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-bold text-lg text-pine-700">{order.userInfo.name}</div>
-                          <div className="text-sm text-cocoa-400">
-                            Order submitted {order.timestamp?.toLocaleString() || "recently"}
-                          </div>
-                        </div>
-                        <div className="badge bg-orange-500 text-white px-4 py-2">
-                          <b>In Queue</b>
-                        </div>
-                      </div>
-
-                      {/* Wait Time */}
-                      <div className="rounded-xl bg-white border-2 border-sage-200 p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="text-2xl">⏱️</div>
-                          <div className="flex-1">
-                            <div className="text-sm font-bold text-pine-700 mb-1">
-                              Estimated Wait Time
-                            </div>
-                            <div className="text-lg font-black text-pine-600">
-                              {waitTime.displayText}
-                            </div>
-                            {waitTime.queueLength > 0 ? (
-                              <div className="text-xs text-cocoa-500 font-medium mt-1">
-                                {waitTime.queueLength} {waitTime.queueLength === 1 ? 'order' : 'orders'} ahead of yours
-                              </div>
-                            ) : (
-                              <div className="text-xs text-green-600 font-medium mt-1">
-                                No queue - being prepared now!
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Order Items */}
-                      <div className="border-t border-sage-200 pt-3 flex flex-col gap-2">
-                        <div className="font-bold text-pine-600 mb-1">Your Order:</div>
-                        {order.items.map((item, idx) => (
-                          <div key={idx} className="order-item">
-                            <div className="order-drink-name">{item.drinkName}</div>
-                            <div className="order-details">{item.temperature} · {item.milkType}</div>
-                            {item.specialInstructions && (
-                              <div className="order-note mt-0.5">Note: {item.specialInstructions}</div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+            {activeOrders.map(order => {
+              const ts = order.submittedAt?.toDate ? order.submittedAt.toDate() : new Date(order.submittedAt);
+              const wait = getEstimatedWaitTime(ts);
+              return (
+                <div key={order.id} className="order-card">
+                  <div className="order-header">
+                    <div>
+                      <div className="order-customer">{order.userInfo.name}</div>
+                      <div className="order-number">Submitted {order.timestamp?.toLocaleString() || "recently"}</div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Completed Orders List */}
-          {hasSearched && (
-            <div className="flex flex-col gap-4 w-full">
-              <div className="flex items-center justify-between gap-5 px-2">
-                <b className="section-title">Completed Orders</b>
-                <div className="badge badge-count px-4 py-2">
-                  <b>{orders.length} Orders</b>
-                </div>
-              </div>
-
-              {orders.length === 0 && activeOrders.length === 0 ? (
-                <div className="card border-sage-200 p-10 text-center">
-                  <p className="text-lg text-cocoa-500 font-semibold">
-                    No orders found for this phone number.
-                  </p>
-                </div>
-              ) : orders.length === 0 ? (
-                <div className="card border-sage-200 p-6 text-center">
-                  <p className="text-base text-cocoa-500 font-medium">
-                    No completed orders yet. Check back after your order is ready!
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-4">
-                  {orders.map((order) => (
-                    <div key={order.id} className="card border-sage-200 p-6 gap-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-bold text-lg text-pine-700">{order.userInfo.name}</div>
-                          <div className="text-sm text-cocoa-400">
-                            {order.completedAt?.toLocaleString() || "Unknown time"}
-                          </div>
-                        </div>
-                        {order.archived && (
-                          <div className="badge bg-gray-500 text-white px-3 py-1 text-xs">
-                            Archived
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Order Items */}
-                      <div className="border-t border-sage-100 pt-3 flex flex-col gap-2">
-                        {order.items.map((item, idx) => (
-                          <div key={idx} className="order-item">
-                            <div className="order-drink-name">{item.drinkName}</div>
-                            <div className="order-details">{item.temperature} · {item.milkType}</div>
-                            {item.specialInstructions && (
-                              <div className="order-note mt-0.5">Note: {item.specialInstructions}</div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Review Section */}
-                      {reviewingOrderId === order.id ? (
-                        <div className="border-t border-sage-200 pt-4 flex flex-col gap-4">
-                          <div className="flex flex-col gap-2">
-                            <label className="font-bold text-cocoa-600">Your Rating</label>
-                            <StarRating
-                              rating={reviewData.rating}
-                              onRatingChange={(rating) => setReviewData({ ...reviewData, rating })}
-                            />
-                          </div>
-                          <div className="flex flex-col gap-2">
-                            <label className="font-bold text-cocoa-600">Comments (Optional)</label>
-                            <textarea
-                              value={reviewData.comment}
-                              onChange={(e) => setReviewData({ ...reviewData, comment: e.target.value })}
-                              placeholder="Tell us about your experience..."
-                              className={`${inputClass} min-h-[100px] resize-none`}
-                            />
-                          </div>
-                          <div className="flex gap-3">
-                            <button
-                              onClick={() => handleSubmitReview(order.id)}
-                              className="btn-primary btn-medium flex-1"
-                            >
-                              Submit Review
-                            </button>
-                            <button
-                              onClick={handleCancelReview}
-                              className="btn-secondary btn-medium"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="border-t border-sage-200 pt-4 flex items-center justify-between">
-                          {order.rating ? (
-                            <div className="flex flex-col gap-2 flex-1">
-                              <div className="flex items-center gap-3">
-                                <span className="font-bold text-cocoa-600">Your Rating:</span>
-                                <StarRating rating={order.rating} readOnly={true} />
-                              </div>
-                              {order.reviewComment && (
-                                <div className="rounded-lg bg-sage-50 border border-sage-200 p-3">
-                                  <p className="text-sm text-cocoa-600 italic">{order.reviewComment}</p>
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <>
-                              <span className="text-cocoa-500 font-medium">No review yet</span>
-                              <button
-                                onClick={() => handleStartReview(order.id)}
-                                className="btn-primary btn-small"
-                              >
-                                Leave a Review
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      )}
+                    <StatusBadge status="Pending" />
+                  </div>
+                  <div style={{ background: "var(--cream)", borderRadius: 8, padding: "12px 14px" }}>
+                    <span style={{ color: "var(--muted)", fontSize: 10, display: "block", marginBottom: 3 }}>Estimated wait</span>
+                    <strong style={{ fontSize: 20, fontWeight: 500 }}>{wait.displayText}</strong>
+                    <span style={{ color: "var(--muted)", fontSize: 10, display: "block", marginTop: 4 }}>
+                      {wait.queueLength > 0 ? `${wait.queueLength} order${wait.queueLength > 1 ? "s" : ""} ahead` : "Being prepared now"}
+                    </span>
+                  </div>
+                  {order.items.map((item, i) => (
+                    <div key={i} className="order-item">
+                      <div className="order-drink-name">{item.drinkName}</div>
+                      <div className="order-details">{item.temperature} · {item.milkType}</div>
+                      {item.specialInstructions && <div className="order-note">Note: {item.specialInstructions}</div>}
                     </div>
                   ))}
                 </div>
-              )}
+              );
+            })}
+          </div>
+        )}
+
+        {/* Completed orders */}
+        {hasSearched && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span className="section-title">Completed</span>
+              <span className="badge badge-count">{orders.length}</span>
             </div>
-          )}
-        </div>
+
+            {orders.length === 0 && activeOrders.length === 0 ? (
+              <div className="order-card" style={{ textAlign: "center", padding: "32px 20px" }}>
+                <p style={{ color: "var(--muted)", fontSize: 13 }}>No orders found for this number.</p>
+              </div>
+            ) : orders.length === 0 ? (
+              <div className="order-card" style={{ textAlign: "center", padding: "24px 20px" }}>
+                <p style={{ color: "var(--muted)", fontSize: 13 }}>No completed orders yet.</p>
+              </div>
+            ) : orders.map(order => (
+              <div key={order.id} className="order-card">
+                <div className="order-header">
+                  <div>
+                    <div className="order-customer">{order.userInfo.name}</div>
+                    <div className="order-number">{order.completedAt?.toLocaleString() || "Unknown time"}</div>
+                  </div>
+                  <StatusBadge status={order.archived ? "Archived" : "Completed"} />
+                </div>
+
+                {order.items.map((item, i) => (
+                  <div key={i} className="order-item">
+                    <div className="order-drink-name">{item.drinkName}</div>
+                    <div className="order-details">{item.temperature} · {item.milkType}</div>
+                    {item.specialInstructions && <div className="order-note">Note: {item.specialInstructions}</div>}
+                  </div>
+                ))}
+
+                {/* Review */}
+                <div style={{ borderTop: "1px solid var(--line)", paddingTop: 14 }}>
+                  {reviewingOrderId === order.id ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      <label style={{ fontSize: 11, fontWeight: 700 }}>Your rating</label>
+                      <StarRating rating={reviewData.rating} onRatingChange={r => setReviewData({ ...reviewData, rating: r })} />
+                      <textarea
+                        placeholder="Tell us about your experience..."
+                        rows={2}
+                        value={reviewData.comment}
+                        onChange={e => setReviewData({ ...reviewData, comment: e.target.value })}
+                      />
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button className="btn-success btn-small" style={{ flex: 1 }} onClick={() => handleSubmitReview(order.id)}>Submit</button>
+                        <button className="btn-secondary btn-small" onClick={() => setReviewingOrderId(null)}>Cancel</button>
+                      </div>
+                    </div>
+                  ) : order.rating ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)" }}>Your rating</span>
+                        <StarRating rating={order.rating} readOnly />
+                      </div>
+                      {order.reviewComment && (
+                        <p style={{ fontSize: 11, color: "var(--muted)", fontStyle: "italic", background: "var(--cream)", padding: "8px 10px", borderRadius: 6 }}>
+                          {order.reviewComment}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: 11, color: "var(--muted)" }}>No review yet</span>
+                      <button
+                        className="btn-small"
+                        style={{ border: 0, background: "var(--cream)", color: "var(--espresso)", borderRadius: 5, padding: "7px 10px", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}
+                        onClick={() => { setReviewingOrderId(order.id); setReviewData({ rating: order.rating || 0, comment: order.reviewComment || "" }); }}
+                      >
+                        ★ Rate order
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

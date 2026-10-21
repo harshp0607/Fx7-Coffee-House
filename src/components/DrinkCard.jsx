@@ -16,43 +16,57 @@ const DrinkCard1 = ({ className = "", image, drinkName, description, outOfStock 
   };
 
   return (
-    <div
+    <button
       onClick={handleClick}
-      className={`self-stretch shadow-lg rounded-2xl bg-white/95 backdrop-blur-sm border-solid border-[2px] flex items-start p-[1.375rem] gap-[1.25rem] transition-all text-left text-[1rem] font-inter ${className} ${
-        outOfStock
-          ? "opacity-50 grayscale cursor-not-allowed border-gray-300"
-          : "cursor-pointer hover:shadow-2xl hover:border-pine-300 hover:-translate-y-1 hover:bg-white border-sage-200"
-      }`}
+      className={className}
+      style={{
+        padding: 0,
+        overflow: "hidden",
+        textAlign: "left",
+        border: "1px solid var(--line)",
+        background: "var(--card)",
+        borderRadius: 10,
+        color: "var(--fg)",
+        cursor: outOfStock ? "not-allowed" : "pointer",
+        opacity: outOfStock ? 0.5 : 1,
+        filter: outOfStock ? "grayscale(1)" : "none",
+        transition: "border-color 0.15s",
+        width: "100%",
+      }}
+      onMouseEnter={e => { if (!outOfStock) e.currentTarget.style.borderColor = "#d0c4b4"; }}
+      onMouseLeave={e => e.currentTarget.style.borderColor = "var(--line)"}
     >
-      <div className="relative w-[6rem] h-[6rem] flex-shrink-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-sage-200 to-pine-200 rounded-xl blur-md opacity-20"></div>
+      {/* Photo */}
+      <div style={{ height: 120, position: "relative", overflow: "hidden", background: "var(--cream)" }}>
         <img
-          className="h-full w-full relative rounded-xl object-cover shadow-md ring-2 ring-white"
-          alt=""
+          alt={drinkName}
           src={image}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
         {outOfStock && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl">
-            <span className="text-white font-bold text-sm text-center">OUT OF STOCK</span>
+          <div style={{
+            position: "absolute", inset: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "rgba(0,0,0,0.4)",
+          }}>
+            <span style={{ color: "white", fontWeight: 700, fontSize: 11 }}>OUT OF STOCK</span>
           </div>
         )}
       </div>
-      <div className="flex-1 flex flex-col items-start justify-center gap-[0.625rem]">
-        <b className="self-stretch relative text-pine-700 text-[1.125rem]">{drinkName}</b>
-        <div className="self-stretch relative text-[0.938rem] text-cocoa-500 leading-snug">
-          {description}
+
+      {/* Copy */}
+      <div style={{ padding: "11px 11px 13px" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 4, minHeight: 34 }}>
+          <h3 style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.15, letterSpacing: "-0.02em" }}>{drinkName}</h3>
         </div>
-        {outOfStock ? (
-          <div className="mt-1 px-3 py-1 rounded-full bg-red-100 text-[0.813rem] font-bold text-red-600 shadow-sm">
-            ✗ Unavailable
-          </div>
-        ) : (
-          <div className="mt-1 px-3 py-1 rounded-full bg-gradient-to-r from-sage-100 to-cream-200 text-[0.813rem] font-bold text-pine-600 shadow-sm">
-            🍂 Complimentary ✦
-          </div>
-        )}
+        <p style={{ color: "var(--muted)", fontSize: 10, lineHeight: 1.4, margin: "5px 0 10px", minHeight: 26 }}>
+          {description}
+        </p>
+        <span style={{ color: "var(--clay)", display: "flex", gap: 3, alignItems: "center", fontSize: 10, fontWeight: 700 }}>
+          {outOfStock ? "Unavailable" : "Complimentary →"}
+        </span>
       </div>
-    </div>
+    </button>
   );
 };
 

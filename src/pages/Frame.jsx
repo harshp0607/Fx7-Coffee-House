@@ -3,50 +3,64 @@ import HolidayHeader from "../components/HolidayHeader";
 import DrinksGrid from "../components/DrinksGrid";
 import { useOrder } from "../context/OrderContext";
 
+const SectionHeading = ({ eyebrow, title, count }) => (
+  <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 13 }}>
+    <div>
+      <span className="eyebrow" style={{ marginBottom: 5 }}>{eyebrow}</span>
+      <h2 style={{ fontSize: 22, fontWeight: 500, letterSpacing: "-0.04em" }}>{title}</h2>
+    </div>
+    <span style={{ color: "var(--muted)", fontSize: 10 }}>{count} drinks</span>
+  </div>
+);
+
 const Frame = () => {
   const navigate = useNavigate();
-  const { orderCount, totalDonations } = useOrder();
+  const { orderCount } = useOrder();
 
   return (
-    <div className="w-full relative flex flex-col items-center min-h-screen text-left text-[1.25rem] font-inter" style={{background: 'linear-gradient(135deg, #faefd8 0%, #f4e8d4 50%, #fde5cc 100%)'}}>
-      <div className="w-full max-w-[1400px] flex flex-col items-start">
-        <HolidayHeader />
+    <div className="page-container">
+      <HolidayHeader />
 
-        {/* Donation Counter */}
-        <div className="self-stretch flex items-center justify-center py-[2rem] px-[1.5rem] sm:px-[1rem] md:px-[2rem] lg:px-[3rem]">
-          <div className="w-full max-w-md shadow-2xl rounded-2xl bg-gradient-to-br from-pine-500 via-pine-600 to-pine-700 border-3 border-pine-800 flex flex-col items-center p-[2.5rem] gap-[1rem]">
-            <div className="text-white text-[0.938rem] font-bold tracking-wide uppercase opacity-90">Total Raised for Feeding America</div>
-            <div className="text-white text-[4rem] font-black drop-shadow-2xl tracking-tight">
-              ${totalDonations.toFixed(2)}
-            </div>
-            <div className="text-cream-100 text-[0.938rem] font-medium text-center leading-relaxed">
-              Every donation provides warm meals to those in need
-            </div>
-          </div>
-        </div>
+      {/* Fall Coffees */}
+      <section style={{ padding: "0 20px 32px" }}>
+        <SectionHeading eyebrow="Made for the season" title="Fall Coffees" count={4} />
+        <DrinksGrid category="coffee" />
+      </section>
 
-        {/* Coffee Section */}
-        <div className="self-stretch flex flex-col items-start py-[2rem] px-[1.5rem] sm:px-[1rem] md:px-[2rem] lg:px-[3rem] gap-[1.5rem] bg-gradient-to-b from-transparent to-white/40">
-          <b className="self-stretch relative text-pine-700 text-[1.75rem] tracking-tight drop-shadow-sm">🍁 Fall Coffees</b>
-          <DrinksGrid category="coffee" />
-        </div>
+      {/* Other Fall Favorites */}
+      <section style={{ padding: "0 20px 32px" }}>
+        <SectionHeading eyebrow="Beyond the espresso" title="Other Fall Favorites" count={2} />
+        <DrinksGrid category="other" />
+      </section>
 
-        {/* Other Seasonal Favorites Section */}
-        <div className="self-stretch flex flex-col items-start py-[1rem] px-[1.5rem] sm:px-[1rem] md:px-[2rem] lg:px-[3rem] gap-[1.5rem] bg-gradient-to-b from-white/40 to-white/60">
-          <b className="self-stretch relative text-pine-700 text-[1.75rem] tracking-tight drop-shadow-sm">🍂 Other Fall Favorites</b>
-          <DrinksGrid category="other" />
-        </div>
-        <div className="self-stretch bg-gradient-to-t from-cream-100 to-white/60 flex flex-col items-start pt-[1.5rem] px-[1.5rem] sm:px-[1rem] md:px-[2rem] lg:px-[3rem] pb-[2.5rem] text-[1rem] text-white">
-          <div
-            onClick={() => navigate("/checkout")}
-            className="self-stretch shadow-xl rounded-2xl bg-gradient-to-r from-pine-500 to-pine-600 flex items-center justify-between py-[1.375rem] px-[2rem] gap-[1.25rem] cursor-pointer hover:from-pine-600 hover:to-pine-700 hover:shadow-2xl hover:scale-[1.02] transition-all"
-          >
-            <div className="flex items-center gap-2">
-              <div className="relative font-bold text-[1.125rem]">View Order</div>
-              <div className="text-[1.25rem] opacity-75">→</div>
-            </div>
-          </div>
-        </div>
+      {/* View Order CTA */}
+      <div style={{ padding: "0 20px 40px" }}>
+        <button
+          onClick={() => navigate("/checkout")}
+          className="btn-primary"
+          style={{ position: "relative" }}
+        >
+          View Order
+          {orderCount > 0 && (
+            <span style={{
+              position: "absolute", right: 16,
+              background: "var(--clay)", color: "white",
+              borderRadius: "50%", width: 20, height: 20,
+              fontSize: 10, fontWeight: 800,
+              display: "grid", placeItems: "center",
+            }}>{orderCount}</span>
+          )}
+        </button>
+      </div>
+
+      {/* Staff link */}
+      <div style={{ textAlign: "center", paddingBottom: 32 }}>
+        <button
+          onClick={() => navigate("/dashboard")}
+          style={{ border: 0, background: "none", color: "var(--muted)", fontSize: 11, display: "inline-flex", alignItems: "center", gap: 4 }}
+        >
+          Barista view →
+        </button>
       </div>
     </div>
   );

@@ -5,9 +5,21 @@ import StarRating from "../components/StarRating";
 import { DRINK_NAMES } from "../data/drinks";
 import ConfirmDialog from "../components/ConfirmDialog";
 
+const X = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <path d="M4 4L14 14M14 4L4 14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+  </svg>
+);
+
 const Frame2 = () => {
   const navigate = useNavigate();
-  const { submittedOrders, completedToday, pendingDonations, totalDonations, allCompletedOrders, outOfStockDrinks, outOfStockMilk, markOrderAsReady, verifyDonation, clearCompletedToday, clearTotalDonations, clearAllHistory, getAllReviews, toggleDrinkStock, toggleMilkStock } = useOrder();
+  const {
+    submittedOrders, completedToday, pendingDonations, totalDonations,
+    allCompletedOrders, outOfStockDrinks, outOfStockMilk,
+    markOrderAsReady, verifyDonation, clearCompletedToday, clearTotalDonations,
+    clearAllHistory, getAllReviews, toggleDrinkStock, toggleMilkStock
+  } = useOrder();
+
   const [activeTab, setActiveTab] = useState("active");
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const [allReviews, setAllReviews] = useState([]);
@@ -16,9 +28,7 @@ const Frame2 = () => {
   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", onConfirm: null });
 
   useEffect(() => {
-    if (activeTab === "reviews") {
-      loadReviews();
-    }
+    if (activeTab === "reviews") loadReviews();
   }, [activeTab]);
 
   const loadReviews = async () => {
@@ -33,487 +43,344 @@ const Frame2 = () => {
     }
   };
 
-  return (
-    <div className="page-container items-center">
-      <div className="w-full max-w-[1600px] flex flex-col">
-      <div className="page-header">
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-pine-800">Barista Dashboard</h1>
+  const confirm = (title, message, onConfirm) =>
+    setConfirmDialog({ isOpen: true, title, message, onConfirm });
+  const closeConfirm = () => setConfirmDialog(d => ({ ...d, isOpen: false }));
 
-        {/* Stats Cards */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-3 text-2xl sm:text-3xl">
-          <div className="stat-card bg-sage-100 border-sage-300">
-            <b className="text-pine-800">{submittedOrders.length}</b>
-            <div className="text-xs sm:text-sm font-bold text-pine-600">In Queue</div>
+  const tabs = [
+    { key: "active",    label: `Active`,      count: submittedOrders.length },
+    { key: "donations", label: `Donations`,   count: pendingDonations.length },
+    { key: "history",   label: `History`,     count: allCompletedOrders.length },
+    { key: "reviews",   label: `Reviews`,     count: allReviews.length },
+    { key: "inventory", label: `Inventory`,   count: null },
+  ];
+
+  const emptyMsg = (msg) => (
+    <div style={{ textAlign: "center", padding: "48px 20px", color: "var(--muted)", fontSize: 13 }}>{msg}</div>
+  );
+
+  return (
+    <div className="page-container">
+      {/* Sticky header */}
+      <header style={{
+        height: 60, display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "0 20px", background: "rgba(247,244,239,0.92)", position: "sticky",
+        top: 0, zIndex: 10, backdropFilter: "blur(14px)", borderBottom: "1px solid var(--line)",
+      }}>
+        <div>
+          <span className="eyebrow" style={{ marginBottom: 1 }}>Good morning, team</span>
+          <div style={{ fontWeight: 700, fontSize: 14, color: "var(--espresso)", letterSpacing: "-0.02em" }}>Barista dashboard</div>
+        </div>
+        <button className="icon-btn" onClick={() => navigate("/")} aria-label="Close dashboard"><X /></button>
+      </header>
+
+      <div style={{ padding: "20px 20px 0" }}>
+        {/* Stats row */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, marginBottom: 20 }}>
+          <div className="stat-card">
+            <span className="stat-label">In Queue</span>
+            <strong className="stat-value">{submittedOrders.length}</strong>
           </div>
 
-          <div className="stat-card bg-pine-100 border-pine-300">
-            <div className="flex items-center justify-between w-full gap-2">
-              <b className="text-pine-800">{completedToday}</b>
+          <div className="stat-card">
+            <span className="stat-label">Completed today</span>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
+              <strong className="stat-value">{completedToday}</strong>
               {completedToday > 0 && (
                 <button
-                  onClick={() => {
-                    setConfirmDialog({
-                      isOpen: true,
-                      title: "Clear Today's Orders?",
-                      message: "This will archive all completed orders from today. Are you sure?",
-                      onConfirm: () => {
-                        clearCompletedToday();
-                        setConfirmDialog({ ...confirmDialog, isOpen: false });
-                      }
-                    });
-                  }}
-                  className="btn-primary btn-small"
-                >
-                  Clear
-                </button>
+                  onClick={() => confirm("Clear Today's Orders?", "This will archive all completed orders from today.", () => { clearCompletedToday(); closeConfirm(); })}
+                  style={{ border: 0, background: "rgba(255,255,255,0.15)", color: "white", borderRadius: 4, padding: "3px 7px", fontSize: 9, fontWeight: 700, cursor: "pointer" }}
+                >Clear</button>
               )}
             </div>
-            <div className="text-xs sm:text-sm font-bold text-pine-600">Completed Today</div>
           </div>
 
-          <div className="stat-card bg-green-100 border-green-300">
-            <div className="flex items-center justify-between w-full gap-2">
-              <b className="text-green-800">${totalDonations.toFixed(2)}</b>
+          <div className="stat-card">
+            <span className="stat-label">Total donations</span>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
+              <strong className="stat-value">${totalDonations.toFixed(2)}</strong>
               {totalDonations > 0 && (
                 <button
-                  onClick={() => {
-                    setConfirmDialog({
-                      isOpen: true,
-                      title: "Clear Total Donations?",
-                      message: "This will delete all verified donation records. Are you sure?",
-                      onConfirm: () => {
-                        clearTotalDonations();
-                        setConfirmDialog({ ...confirmDialog, isOpen: false });
-                      }
-                    });
-                  }}
-                  className="btn-success btn-small"
-                >
-                  Clear
-                </button>
+                  onClick={() => confirm("Clear Total Donations?", "This will delete all verified donation records.", () => { clearTotalDonations(); closeConfirm(); })}
+                  style={{ border: 0, background: "rgba(255,255,255,0.15)", color: "white", borderRadius: 4, padding: "3px 7px", fontSize: 9, fontWeight: 700, cursor: "pointer" }}
+                >Clear</button>
               )}
             </div>
-            <div className="text-xs sm:text-sm font-bold text-green-700">Total Donations</div>
+          </div>
+
+          <div className="stat-card">
+            <span className="stat-label">Out of stock</span>
+            <strong className="stat-value">{outOfStockDrinks.length + outOfStockMilk.length}</strong>
           </div>
         </div>
 
         {/* Tabs */}
         <div className="tab-container">
-          <button
-            onClick={() => setActiveTab("active")}
-            className={`flex-1 ${activeTab === "active" ? "tab-active" : "tab-inactive"} tab`}
-          >
-            Active ({submittedOrders.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("donations")}
-            className={`flex-1 tab ${activeTab === "donations" ? "bg-green-600 text-white shadow-md" : "bg-white/50 text-green-600 hover:bg-white/80"}`}
-          >
-            Donations ({pendingDonations.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("history")}
-            className={`flex-1 tab ${activeTab === "history" ? "bg-blue-600 text-white shadow-md" : "bg-white/50 text-blue-600 hover:bg-white/80"}`}
-          >
-            History ({allCompletedOrders.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("reviews")}
-            className={`flex-1 tab ${activeTab === "reviews" ? "bg-purple-600 text-white shadow-md" : "bg-white/50 text-purple-600 hover:bg-white/80"}`}
-          >
-            Reviews ({allReviews.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("inventory")}
-            className={`flex-1 tab ${activeTab === "inventory" ? "bg-orange-600 text-white shadow-md" : "bg-white/50 text-orange-600 hover:bg-white/80"}`}
-          >
-            Inventory
-          </button>
+          {tabs.map(t => (
+            <button
+              key={t.key}
+              className={`tab ${activeTab === t.key ? "tab-active" : "tab-inactive"}`}
+              onClick={() => setActiveTab(t.key)}
+            >
+              {t.label}{t.count !== null ? <span style={{ marginLeft: 5, color: "var(--clay)", fontSize: 10 }}>{t.count}</span> : null}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="content-section text-lg text-pine-800">
-        {/* Active Orders Tab */}
+      <div className="content-section">
+
+        {/* ── Active orders ── */}
         {activeTab === "active" && (
           <>
-            <div className="flex items-center justify-between gap-5 px-2 w-full">
-              <b className="section-title">Active Orders</b>
-              <div className="badge badge-count px-4 py-2">
-                <b>{submittedOrders.length} Orders</b>
-              </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span className="section-title">Active orders</span>
+              <span className="badge badge-count">{submittedOrders.length}</span>
             </div>
-
-            <div className="order-grid w-full text-base">
-              {submittedOrders.length === 0 ? (
-                <div className="col-span-full flex items-center justify-center py-16 text-lg text-cocoa-500 font-semibold">
-                  No active orders. Orders will appear here when customers submit them.
-                </div>
-              ) : (
-                submittedOrders.map((order) => (
-                  <div key={order.id} className="order-card border-sage-200 hover:shadow-2xl hover:border-pine-300">
+            {submittedOrders.length === 0 ? emptyMsg("No active orders. Waiting for customers…") : (
+              <div className="order-grid">
+                {submittedOrders.map(order => (
+                  <div key={order.id} className="order-card">
                     <div className="order-header">
-                      <b className="order-customer truncate">Order #{order.id.slice(-6)}</b>
-                      <div className="rounded-full bg-gradient-to-br from-cream-200 to-sage-100 border-2 border-sage-200 flex items-center py-1.5 px-3 text-xs text-cocoa-600 shadow-sm">
-                        <span className="font-bold">{order.time}</span>
+                      <div>
+                        <div className="order-number">#{order.id.slice(-6)}</div>
+                        <div className="order-customer">{order.userInfo.name}</div>
                       </div>
+                      <span style={{ background: "var(--cream)", borderRadius: 20, padding: "4px 10px", fontSize: 10, color: "var(--muted)", fontWeight: 600 }}>
+                        {order.time}
+                      </span>
                     </div>
 
-                    <div className="flex flex-col gap-3 text-base">
-                      {order.items.map((item, idx) => (
-                        <div key={idx} className="order-item">
-                          <b className="order-drink-name text-base">{item.drinkName}</b>
-                          <div className="order-details">{item.temperature} · {item.milkType}</div>
-                          {item.specialInstructions && (
-                            <div className="rounded-lg bg-gradient-to-br from-sage-100 to-pine-100 border-2 border-sage-300 flex flex-col p-3 gap-1.5 text-xs text-pine-700 mt-1 shadow-sm">
-                              <b className="text-sm">Special Instructions</b>
-                              <div className="text-sm text-cocoa-600 font-medium">{item.specialInstructions}</div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="rounded-lg bg-gradient-to-br from-cream-100 to-sage-50 border-2 border-sage-200 flex flex-col p-3.5 gap-1.5 text-xs shadow-md">
-                      <b className="text-sm text-pine-700">Customer Info</b>
-                      <div className="text-base text-cocoa-600 font-bold">{order.userInfo.name}</div>
-                      <div className="text-sm text-cocoa-500 font-semibold">{order.userInfo.phone}</div>
-                      {order.donation > 0 && (
-                        <div className="text-base text-sage-700 font-black mt-1">
-                          ✦ Donated: ${order.donation.toFixed(2)}
-                        </div>
-                      )}
-                    </div>
-
-                    <button
-                      onClick={() => markOrderAsReady(order.id)}
-                      className="btn-primary btn-medium w-full gap-2 hover:scale-[1.02]"
-                    >
-                      <span className="flex-1">Mark Ready</span>
-                      <span className="text-base">✓</span>
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          </>
-        )}
-
-        {/* Pending Donations Tab */}
-        {activeTab === "donations" && (
-          <>
-            <div className="flex items-center justify-between gap-5 px-2 w-full">
-              <b className="section-title">Pending Donations</b>
-              <div className="badge bg-green-600 text-white px-4 py-2">
-                <b>{pendingDonations.filter(order => !clearedDonationIds.includes(order.id)).length} Pending</b>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-4 w-full text-base">
-              {pendingDonations.filter(order => !clearedDonationIds.includes(order.id)).length === 0 ? (
-                <div className="flex items-center justify-center py-16 text-lg text-cocoa-500 font-semibold">
-                  No pending donations to verify.
-                </div>
-              ) : (
-                pendingDonations
-                  .filter(order => !clearedDonationIds.includes(order.id))
-                  .map((order) => (
-                    <div key={order.id} className="card border-green-200 flex items-center justify-between p-5 gap-4 hover:shadow-2xl">
-                      <div className="flex-1">
-                        <div className="font-bold text-lg text-pine-700">{order.userInfo.name}</div>
-                        <div className="text-sm text-cocoa-500 font-medium mt-1">
-                          Pledged: ${order.donation.toFixed(2)}
-                        </div>
-                        <div className="text-xs text-cocoa-400 mt-1">Order #{order.id.slice(-6)}</div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={async () => {
-                            setConfirmDialog({
-                              isOpen: true,
-                              title: "Verify Donation?",
-                              message: `Verify $${order.donation.toFixed(2)} donation from ${order.userInfo.name}?`,
-                              onConfirm: async () => {
-                                try {
-                                  await verifyDonation(order.id, order.donation, order.userInfo.name);
-                                  // Add to cleared list to remove from view
-                                  setClearedDonationIds([...clearedDonationIds, order.id]);
-                                  setConfirmDialog({ ...confirmDialog, isOpen: false });
-                                  alert("Donation verified successfully!");
-                                } catch (error) {
-                                  console.error("Failed to verify donation:", error);
-                                  setConfirmDialog({ ...confirmDialog, isOpen: false });
-                                  alert("Failed to verify donation. Check console for details.");
-                                }
-                              }
-                            });
-                          }}
-                          className="btn-success btn-medium hover:shadow-lg"
-                        >
-                          ✓ Verify
-                        </button>
-                        <button
-                          onClick={() => {
-                            setConfirmDialog({
-                              isOpen: true,
-                              title: "Clear Donation?",
-                              message: `Clear $${order.donation.toFixed(2)} donation from ${order.userInfo.name}? This will hide it from the pending list.`,
-                              onConfirm: () => {
-                                setClearedDonationIds([...clearedDonationIds, order.id]);
-                                console.log("Donation cleared from view (local only):", order.id);
-                                setConfirmDialog({ ...confirmDialog, isOpen: false });
-                              }
-                            });
-                          }}
-                          className="btn-danger btn-medium hover:shadow-lg"
-                        >
-                          ✗ Clear
-                        </button>
-                      </div>
-                    </div>
-                  ))
-              )}
-            </div>
-          </>
-        )}
-
-        {/* Order History Tab */}
-        {activeTab === "history" && (
-          <>
-            <div className="flex items-center justify-between gap-5 px-2 w-full">
-              <b className="section-title">Order History</b>
-              <div className="flex items-center gap-3">
-                {allCompletedOrders.length > 0 && (
-                  <button
-                    onClick={() => {
-                      setConfirmDialog({
-                        isOpen: true,
-                        title: "Clear All History?",
-                        message: "This will delete all completed orders permanently. Are you sure?",
-                        onConfirm: () => {
-                          clearAllHistory();
-                          setConfirmDialog({ ...confirmDialog, isOpen: false });
-                        }
-                      });
-                    }}
-                    className="btn-danger btn-small"
-                  >
-                    Clear All
-                  </button>
-                )}
-                <div className="badge bg-blue-600 text-white px-4 py-2">
-                  <b>{allCompletedOrders.length} Total</b>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3 w-full text-sm">
-              {allCompletedOrders.length === 0 ? (
-                <div className="flex items-center justify-center py-16 text-lg text-cocoa-500 font-semibold">
-                  No order history yet.
-                </div>
-              ) : (
-                allCompletedOrders.map((order) => (
-                  <div key={order.id} className="card border-blue-200 flex flex-col p-4 gap-3">
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="font-bold text-base text-pine-700">{order.userInfo.name}</div>
-                        <div className="text-xs text-cocoa-400 mt-0.5">
-                          {order.completedAt?.toLocaleString() || "Unknown time"}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <button
-                          onClick={() => setExpandedOrderId(expandedOrderId === order.id ? null : order.id)}
-                          className="text-sm text-blue-600 font-medium hover:text-blue-800 transition-all"
-                        >
-                          {order.items.length} item{order.items.length !== 1 ? "s" : ""} {expandedOrderId === order.id ? "▲" : "▼"}
-                        </button>
-                        {order.donation > 0 && (
-                          <div className={`badge ${order.donationVerified ? "badge-verified" : "badge-pending"}`}>
-                            ${order.donation.toFixed(2)} {order.donationVerified ? "✓" : "⏳"}
+                    {order.items.map((item, idx) => (
+                      <div key={idx} className="order-item">
+                        <div className="order-drink-name">{item.drinkName}</div>
+                        <div className="order-details">{item.temperature} · {item.milkType}</div>
+                        {item.specialInstructions && (
+                          <div style={{ background: "var(--cream)", borderRadius: 6, padding: "6px 10px", marginTop: 4, fontSize: 11, color: "var(--muted)", fontStyle: "italic" }}>
+                            Note: {item.specialInstructions}
                           </div>
                         )}
                       </div>
-                    </div>
+                    ))}
 
-                    {expandedOrderId === order.id && (
-                      <div className="border-t border-blue-100 pt-3 flex flex-col gap-2">
-                        {order.items.map((item, idx) => (
-                          <div key={idx} className="order-item">
-                            <div className="order-drink-name">{item.drinkName}</div>
-                            <div className="order-details">{item.temperature} · {item.milkType}</div>
-                            {item.specialInstructions && (
-                              <div className="order-note mt-0.5">Note: {item.specialInstructions}</div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))
-              )}
-            </div>
-          </>
-        )}
-
-        {/* Reviews Tab */}
-        {activeTab === "reviews" && (
-          <>
-            <div className="flex items-center justify-between gap-5 px-2 w-full">
-              <b className="section-title">Customer Reviews</b>
-              <div className="badge bg-purple-600 text-white px-4 py-2">
-                <b>{allReviews.length} Reviews</b>
-              </div>
-            </div>
-
-            {reviewsLoading ? (
-              <div className="flex items-center justify-center py-16 text-lg text-cocoa-500 font-semibold">
-                Loading reviews...
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3 w-full text-sm">
-                {allReviews.length === 0 ? (
-                  <div className="flex items-center justify-center py-16 text-lg text-cocoa-500 font-semibold">
-                    No reviews yet.
-                  </div>
-                ) : (
-                  allReviews.map((review) => (
-                    <div key={review.id} className="card border-purple-200 flex flex-col p-5 gap-3">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="font-bold text-base text-pine-700">{review.userInfo.name}</div>
-                          <div className="text-xs text-cocoa-400 mt-0.5">
-                            Order: {review.completedAt?.toLocaleString() || "Unknown time"}
-                          </div>
-                          {review.reviewedAt && (
-                            <div className="text-xs text-cocoa-400">
-                              Reviewed: {review.reviewedAt?.toLocaleString()}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <StarRating rating={review.rating} readOnly={true} />
-                          {review.archived && (
-                            <div className="badge bg-gray-500 text-white px-2 py-1 text-xs">
-                              Archived
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Order Items */}
-                      <div className="border-t border-purple-100 pt-2 flex flex-col gap-1.5">
-                        <div className="font-semibold text-xs text-cocoa-600">Order Items:</div>
-                        {review.items.map((item, idx) => (
-                          <div key={idx} className="text-xs text-cocoa-500">
-                            • {item.drinkName} ({item.temperature} · {item.milkType})
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Review Comment */}
-                      {review.reviewComment && (
-                        <div className="rounded-lg bg-purple-50 border border-purple-200 p-3">
-                          <div className="font-semibold text-xs text-purple-700 mb-1">Comment:</div>
-                          <p className="text-sm text-cocoa-600 italic">{review.reviewComment}</p>
-                        </div>
+                    <div style={{ background: "var(--cream)", borderRadius: 8, padding: "10px 12px", fontSize: 11 }}>
+                      <div style={{ fontWeight: 700, marginBottom: 4, fontSize: 10, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em" }}>Customer</div>
+                      <div style={{ fontWeight: 600, color: "var(--fg)" }}>{order.userInfo.name}</div>
+                      <div style={{ color: "var(--muted)" }}>{order.userInfo.phone}</div>
+                      {order.donation > 0 && (
+                        <div style={{ marginTop: 4, color: "var(--clay)", fontWeight: 700 }}>Donated ${order.donation.toFixed(2)}</div>
                       )}
                     </div>
-                  ))
-                )}
+
+                    <button className="btn-success" style={{ width: "100%" }} onClick={() => markOrderAsReady(order.id)}>
+                      Mark ready ✓
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </>
         )}
 
-        {/* Inventory Tab */}
+        {/* ── Donations ── */}
+        {activeTab === "donations" && (
+          <>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span className="section-title">Pending donations</span>
+              <span className="badge badge-pending">{pendingDonations.filter(o => !clearedDonationIds.includes(o.id)).length} pending</span>
+            </div>
+            {pendingDonations.filter(o => !clearedDonationIds.includes(o.id)).length === 0
+              ? emptyMsg("No pending donations to verify.")
+              : pendingDonations.filter(o => !clearedDonationIds.includes(o.id)).map(order => (
+                <div key={order.id} className="card" style={{ padding: "14px 16px", flexDirection: "row", alignItems: "center", gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: 13 }}>{order.userInfo.name}</div>
+                    <div style={{ color: "var(--muted)", fontSize: 11, marginTop: 2 }}>Pledged ${order.donation.toFixed(2)} · #{order.id.slice(-6)}</div>
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button className="btn-success btn-small" onClick={() => confirm(
+                      "Verify Donation?",
+                      `Verify $${order.donation.toFixed(2)} from ${order.userInfo.name}?`,
+                      async () => {
+                        try {
+                          await verifyDonation(order.id, order.donation, order.userInfo.name);
+                          setClearedDonationIds(ids => [...ids, order.id]);
+                          closeConfirm();
+                          alert("Donation verified!");
+                        } catch (e) {
+                          console.error(e);
+                          closeConfirm();
+                          alert("Failed to verify. Check console.");
+                        }
+                      }
+                    )}>✓ Verify</button>
+                    <button className="btn-danger btn-small" onClick={() => confirm(
+                      "Clear Donation?",
+                      `Hide $${order.donation.toFixed(2)} from ${order.userInfo.name} from pending list?`,
+                      () => { setClearedDonationIds(ids => [...ids, order.id]); closeConfirm(); }
+                    )}>✗ Clear</button>
+                  </div>
+                </div>
+              ))
+            }
+          </>
+        )}
+
+        {/* ── History ── */}
+        {activeTab === "history" && (
+          <>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span className="section-title">Order history</span>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                {allCompletedOrders.length > 0 && (
+                  <button className="btn-danger btn-small" onClick={() => confirm(
+                    "Clear All History?",
+                    "This will permanently delete all completed orders.",
+                    () => { clearAllHistory(); closeConfirm(); }
+                  )}>Clear all</button>
+                )}
+                <span className="badge badge-count">{allCompletedOrders.length}</span>
+              </div>
+            </div>
+            {allCompletedOrders.length === 0 ? emptyMsg("No order history yet.") : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {allCompletedOrders.map(order => (
+                  <div key={order.id} className="card" style={{ padding: "14px 16px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 13 }}>{order.userInfo.name}</div>
+                        <div style={{ color: "var(--muted)", fontSize: 10, marginTop: 2 }}>{order.completedAt?.toLocaleString() || "Unknown time"}</div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        {order.donation > 0 && (
+                          <span className={`badge ${order.donationVerified ? "badge-verified" : "badge-pending"}`}>
+                            ${order.donation.toFixed(2)} {order.donationVerified ? "✓" : "⏳"}
+                          </span>
+                        )}
+                        <button
+                          onClick={() => setExpandedOrderId(expandedOrderId === order.id ? null : order.id)}
+                          style={{ border: 0, background: "none", color: "var(--muted)", fontSize: 11, cursor: "pointer", padding: "2px 6px" }}
+                        >
+                          {order.items.length} item{order.items.length !== 1 ? "s" : ""} {expandedOrderId === order.id ? "▲" : "▼"}
+                        </button>
+                      </div>
+                    </div>
+                    {expandedOrderId === order.id && (
+                      <div style={{ borderTop: "1px solid var(--line)", paddingTop: 10, marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+                        {order.items.map((item, idx) => (
+                          <div key={idx} className="order-item">
+                            <div className="order-drink-name">{item.drinkName}</div>
+                            <div className="order-details">{item.temperature} · {item.milkType}</div>
+                            {item.specialInstructions && <div className="order-note">Note: {item.specialInstructions}</div>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── Reviews ── */}
+        {activeTab === "reviews" && (
+          <>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span className="section-title">Customer reviews</span>
+              <span className="badge badge-count">{allReviews.length}</span>
+            </div>
+            {reviewsLoading ? emptyMsg("Loading reviews…") : allReviews.length === 0 ? emptyMsg("No reviews yet.") : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {allReviews.map(review => (
+                  <div key={review.id} className="card" style={{ padding: "14px 16px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 13 }}>{review.userInfo.name}</div>
+                        <div style={{ color: "var(--muted)", fontSize: 10, marginTop: 2 }}>
+                          {review.completedAt?.toLocaleString() || ""}
+                          {review.reviewedAt ? ` · Reviewed ${review.reviewedAt.toLocaleString()}` : ""}
+                        </div>
+                      </div>
+                      <StarRating rating={review.rating} readOnly={true} />
+                    </div>
+
+                    <div style={{ borderTop: "1px solid var(--line)", paddingTop: 8, marginTop: 8 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: "var(--muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.1em" }}>Order</div>
+                      {review.items.map((item, idx) => (
+                        <div key={idx} style={{ fontSize: 11, color: "var(--muted)" }}>
+                          · {item.drinkName} ({item.temperature} · {item.milkType})
+                        </div>
+                      ))}
+                    </div>
+
+                    {review.reviewComment && (
+                      <div style={{ background: "var(--cream)", borderRadius: 6, padding: "8px 10px", fontSize: 12, color: "var(--muted)", fontStyle: "italic", marginTop: 4 }}>
+                        "{review.reviewComment}"
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── Inventory ── */}
         {activeTab === "inventory" && (
           <>
-            <div className="flex items-center justify-between gap-5 px-2 w-full">
-              <b className="section-title">Inventory Management</b>
-              <div className="badge bg-orange-600 text-white px-4 py-2">
-                <b>{outOfStockDrinks.length + outOfStockMilk.length} Out of Stock</b>
-              </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span className="section-title">Inventory</span>
+              <span style={{ color: "var(--clay)", fontSize: 10, fontWeight: 700 }}>Live</span>
             </div>
 
-            {/* Milk Options Section */}
-            <div className="w-full">
-              <div className="font-bold text-lg text-pine-700 mb-3 px-2">Milk Options</div>
-              <div className="flex flex-col gap-3 w-full text-base">
-                {["Whole Milk", "Oat Milk"].map((milkType) => {
-                  const isOutOfStock = outOfStockMilk.includes(milkType);
-                  return (
-                    <div key={milkType} className="card border-blue-200 flex items-center justify-between p-5 gap-4 hover:shadow-xl">
-                      <div className="flex-1">
-                        <div className="font-bold text-lg text-pine-700">{milkType}</div>
-                        <div className={`text-sm font-medium mt-1 ${isOutOfStock ? "text-red-600" : "text-green-600"}`}>
-                          {isOutOfStock ? "Out of Stock" : "In Stock"}
-                        </div>
-                      </div>
-                      <button
-                        onClick={async () => {
-                          try {
-                            await toggleMilkStock(milkType, isOutOfStock);
-                            console.log(`Toggled ${milkType} to ${isOutOfStock ? "in stock" : "out of stock"}`);
-                          } catch (error) {
-                            console.error("Failed to toggle milk stock:", error);
-                            alert("Failed to update inventory. Check console for details.");
-                          }
-                        }}
-                        className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                          isOutOfStock
-                            ? "bg-green-500 text-white hover:bg-green-600"
-                            : "bg-red-500 text-white hover:bg-red-600"
-                        }`}
-                      >
-                        {isOutOfStock ? "Mark In Stock" : "Mark Out of Stock"}
-                      </button>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Milk options</div>
+              {["Whole Milk", "Oat Milk"].map(milkType => {
+                const isOut = outOfStockMilk.includes(milkType);
+                return (
+                  <div key={milkType} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid var(--line)" }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 13 }}>{milkType}</div>
+                      <div style={{ fontSize: 10, color: isOut ? "#c85a4a" : "var(--sage)", marginTop: 2 }}>{isOut ? "Out of stock" : "In stock"}</div>
                     </div>
-                  );
-                })}
-              </div>
+                    <button
+                      className={`toggle ${isOut ? "" : "on"}`}
+                      aria-label={`Toggle ${milkType}`}
+                      onClick={async () => {
+                        try { await toggleMilkStock(milkType, isOut); }
+                        catch (e) { console.error(e); alert("Failed to update. Check console."); }
+                      }}
+                    ><span /></button>
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Drinks Section */}
-            <div className="w-full">
-              <div className="font-bold text-lg text-pine-700 mb-3 px-2">Drinks</div>
-              <div className="flex flex-col gap-3 w-full text-base">
-                {DRINK_NAMES.map((drinkName) => {
-                  const isOutOfStock = outOfStockDrinks.includes(drinkName);
-                  return (
-                    <div key={drinkName} className="card border-orange-200 flex items-center justify-between p-5 gap-4 hover:shadow-xl">
-                      <div className="flex-1">
-                        <div className="font-bold text-lg text-pine-700">{drinkName}</div>
-                        <div className={`text-sm font-medium mt-1 ${isOutOfStock ? "text-red-600" : "text-green-600"}`}>
-                          {isOutOfStock ? "Out of Stock" : "In Stock"}
-                        </div>
-                      </div>
-                      <button
-                        onClick={async () => {
-                          try {
-                            await toggleDrinkStock(drinkName, isOutOfStock);
-                            console.log(`Toggled ${drinkName} to ${isOutOfStock ? "in stock" : "out of stock"}`);
-                          } catch (error) {
-                            console.error("Failed to toggle stock:", error);
-                            alert("Failed to update inventory. Check console for details.");
-                          }
-                        }}
-                        className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                          isOutOfStock
-                            ? "bg-green-500 text-white hover:bg-green-600"
-                            : "bg-red-500 text-white hover:bg-red-600"
-                        }`}
-                      >
-                        {isOutOfStock ? "Mark In Stock" : "Mark Out of Stock"}
-                      </button>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Drinks</div>
+              {DRINK_NAMES.map(drinkName => {
+                const isOut = outOfStockDrinks.includes(drinkName);
+                return (
+                  <div key={drinkName} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid var(--line)" }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 13 }}>{drinkName}</div>
+                      <div style={{ fontSize: 10, color: isOut ? "#c85a4a" : "var(--sage)", marginTop: 2 }}>{isOut ? "Out of stock" : "In stock"}</div>
                     </div>
-                  );
-                })}
-              </div>
+                    <button
+                      className={`toggle ${isOut ? "" : "on"}`}
+                      aria-label={`Toggle ${drinkName}`}
+                      onClick={async () => {
+                        try { await toggleDrinkStock(drinkName, isOut); }
+                        catch (e) { console.error(e); alert("Failed to update. Check console."); }
+                      }}
+                    ><span /></button>
+                  </div>
+                );
+              })}
             </div>
           </>
         )}
-      </div>
       </div>
 
       <ConfirmDialog
@@ -521,7 +388,7 @@ const Frame2 = () => {
         title={confirmDialog.title}
         message={confirmDialog.message}
         onConfirm={confirmDialog.onConfirm}
-        onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+        onCancel={closeConfirm}
       />
     </div>
   );

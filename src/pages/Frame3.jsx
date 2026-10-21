@@ -2,236 +2,199 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useOrder } from "../context/OrderContext";
 
+// Venmo integration preserved — not wired to UI
+const openVenmo = (donationAmount, userName) => {
+  if (donationAmount <= 0) return false;
+  const venmoUsername = "harshp0607";
+  const note = `Donation to Feeding America from ${userName} - FX7 Fall Coffee House`;
+  const venmoUrl = `venmo://paycharge?txn=pay&recipients=${venmoUsername}&amount=${donationAmount}&note=${encodeURIComponent(note)}`;
+  const venmoWebUrl = `https://venmo.com/${venmoUsername}?txn=pay&amount=${donationAmount}&note=${encodeURIComponent(note)}`;
+  window.location.href = venmoUrl;
+  setTimeout(() => window.open(venmoWebUrl, "_blank"), 1500);
+  return true;
+};
+
+const ShoppingBag = () => (
+  <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+    <path d="M3 4h11l-1.5 8H4.5L3 4Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+    <path d="M6 4V3a2.5 2.5 0 015 0v1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+  </svg>
+);
+const Heart = () => (
+  <svg width="17" height="17" viewBox="0 0 17 17" fill="currentColor">
+    <path d="M8.5 14S3 10.5 3 6.5A3.5 3.5 0 018.5 5 3.5 3.5 0 0114 6.5C14 10.5 8.5 14 8.5 14Z"/>
+  </svg>
+);
+const User = () => (
+  <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+    <circle cx="8.5" cy="5.5" r="2.5" stroke="currentColor" strokeWidth="1.4"/>
+    <path d="M3 14c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+  </svg>
+);
+
 const Frame3 = () => {
   const navigate = useNavigate();
   const { orders, submitOrder } = useOrder();
-  const [selectedDonation, setSelectedDonation] = useState("$25");
+  const [selectedDonation, setSelectedDonation] = useState("$5");
   const [customAmount, setCustomAmount] = useState("");
-  const [userInfo, setUserInfo] = useState({
-    name: "",
-    phone: "",
-  });
-  const [smsConsent, setSmsConsent] = useState(false);
-
-  const handleDonationSelect = (amount) => {
-    setSelectedDonation(amount);
-    if (amount !== "Custom") {
-      setCustomAmount("");
-    }
-  };
+  const [userInfo, setUserInfo] = useState({ name: "", phone: "" });
+  const [smsConsent, setSmsConsent] = useState(true);
 
   const getDonationAmount = () => {
     if (selectedDonation === null) return 0;
-    if (selectedDonation === "Custom") {
-      return parseFloat(customAmount) || 0;
-    }
+    if (selectedDonation === "Custom") return parseFloat(customAmount) || 0;
     return parseFloat(selectedDonation.replace("$", ""));
   };
 
-  const openVenmo = () => {
-    const donationAmount = getDonationAmount();
-    if (donationAmount <= 0) return false;
-
-    const venmoUsername = "harshp0607";
-    const note = `Donation to Feeding America from ${userInfo.name} - FX7 Holiday Coffee House`;
-    const venmoUrl = `venmo://paycharge?txn=pay&recipients=${venmoUsername}&amount=${donationAmount}&note=${encodeURIComponent(note)}`;
-    const venmoWebUrl = `https://venmo.com/${venmoUsername}?txn=pay&amount=${donationAmount}&note=${encodeURIComponent(note)}`;
-
-    window.location.href = venmoUrl;
-    setTimeout(() => {
-      window.open(venmoWebUrl, '_blank');
-    }, 1500);
-
-    return true;
-  };
-
   const handleSubmitOrder = async () => {
-    if (orders.length === 0) {
-      alert("Please add items to your order first!");
-      return;
-    }
-    if (!userInfo.name || !userInfo.phone) {
-      alert("Please fill in your name and phone number!");
-      return;
-    }
-
-    const donation = getDonationAmount();
+    if (orders.length === 0) { alert("Please add items to your order first!"); return; }
+    if (!userInfo.name || !userInfo.phone) { alert("Please fill in your name and phone number!"); return; }
 
     try {
-      const submittedOrder = await submitOrder(userInfo, donation);
-      navigate("/order-confirmation", {
-        state: {
-          orderData: submittedOrder,
-          userInfo,
-          donation,
-        },
-      });
+      const submittedOrder = await submitOrder(userInfo, getDonationAmount());
+      navigate("/order-confirmation", { state: { orderData: submittedOrder, userInfo, donation: getDonationAmount() } });
     } catch (error) {
       console.error("Error submitting order:", error);
       alert("Failed to submit order. Please try again.");
     }
   };
 
-  const inputClass = "w-full rounded-xl bg-gradient-to-r from-cream-100 to-sage-50 border-2 border-sage-300 py-4 px-5 text-lg text-pine-700 font-medium placeholder:text-cocoa-400 outline-none focus:border-pine-400 focus:bg-white focus:shadow-lg transition-all";
-  const donationButtonClass = (isSelected) => `flex-1 rounded-xl border-[3px] p-5 cursor-pointer transition-all text-center ${
-    isSelected
-      ? "bg-gradient-to-br from-pine-500 to-pine-600 border-pine-600 text-white shadow-xl"
-      : "bg-white border-sage-300 text-cocoa-600 hover:border-pine-400 hover:shadow-md"
-  }`;
+  const donationOptions = ["$5", "$25", "Custom", "Skip"];
 
   return (
-    <div className="page-container items-center">
-      <div className="w-full max-w-[900px] flex flex-col">
-      <div className="page-header">
-        <h1 className="page-title">Checkout</h1>
+    <div className="page-container">
+      {/* Intro */}
+      <div style={{ padding: "24px 20px 20px" }}>
+        <span className="eyebrow" style={{ marginBottom: 6 }}>Almost there</span>
+        <h1 style={{ fontSize: 34, fontWeight: 500, letterSpacing: "-0.04em", margin: "0 0 10px" }}>Make it yours.</h1>
+        <p style={{ color: "var(--muted)", fontSize: 13, lineHeight: 1.5 }}>
+          Your drinks are complimentary. A donation is optional and always appreciated.
+        </p>
       </div>
 
-      <div className="flex flex-col p-6 gap-5 text-sm">
-        {/* User Information */}
-        <div className="card border-sage-200 p-7 gap-6">
-          <h2 className="text-2xl text-pine-700 font-bold drop-shadow-sm">Your Information</h2>
-          <div className="flex flex-col gap-3">
-            <label className="font-bold text-cocoa-600">Full Name</label>
-            <input
-              type="text"
-              value={userInfo.name}
-              onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
-              placeholder="Enter your name"
-              className={inputClass}
-            />
+      <div style={{ padding: "0 20px 40px", display: "flex", flexDirection: "column", gap: 10 }}>
+
+        {/* Your Details */}
+        <div className="card" style={{ padding: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <span style={{ color: "var(--clay)" }}><User /></span>
+            <h2 style={{ fontSize: 14, fontWeight: 700, letterSpacing: "-0.01em" }}>Your details</h2>
           </div>
-          <div className="flex flex-col gap-3">
-            <label className="font-bold text-cocoa-600">Phone Number</label>
-            <input
-              type="tel"
-              value={userInfo.phone}
-              onChange={(e) => {
-                let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
-                // If user starts typing and hasn't added country code, we'll add +1 on blur
-                setUserInfo({ ...userInfo, phone: value });
-              }}
-              onBlur={(e) => {
-                let value = e.target.value.replace(/\D/g, '');
-                // Auto-add +1 for US numbers (10 digits)
-                if (value.length === 10) {
-                  value = '+1' + value;
-                } else if (value.length === 11 && value.startsWith('1')) {
-                  value = '+' + value;
-                } else if (value.length > 0 && !value.startsWith('+')) {
-                  value = '+1' + value;
-                }
-                setUserInfo({ ...userInfo, phone: value });
-              }}
-              placeholder="(555) 123-4567"
-              className={inputClass}
-            />
-            <div className="flex items-start gap-3">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 8 }}>
+            <label style={{ color: "var(--muted)", fontSize: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+              First name
               <input
-                type="checkbox"
-                id="smsConsent"
-                checked={smsConsent}
-                onChange={(e) => setSmsConsent(e.target.checked)}
-                className="mt-0.5 w-4 h-4 rounded border-2 border-cocoa-400 text-pine-600 focus:ring-2 focus:ring-pine-500 cursor-pointer flex-shrink-0"
+                placeholder="Alex"
+                value={userInfo.name}
+                onChange={e => setUserInfo({ ...userInfo, name: e.target.value })}
               />
-              <label htmlFor="smsConsent" className="text-sm text-cocoa-600 leading-relaxed cursor-pointer">
-                By checking this box, you agree to receive order status notifications from FX7 Coffee House at the phone number provided.
-              </label>
-            </div>
+            </label>
+            <label style={{ color: "var(--muted)", fontSize: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+              Phone number
+              <input
+                type="tel"
+                placeholder="(555) 000-0000"
+                value={userInfo.phone}
+                onChange={e => {
+                  let v = e.target.value.replace(/\D/g, "");
+                  setUserInfo({ ...userInfo, phone: v });
+                }}
+                onBlur={e => {
+                  let v = e.target.value.replace(/\D/g, "");
+                  if (v.length === 10) v = "+1" + v;
+                  else if (v.length === 11 && v.startsWith("1")) v = "+" + v;
+                  else if (v.length > 0 && !v.startsWith("+")) v = "+1" + v;
+                  setUserInfo({ ...userInfo, phone: v });
+                }}
+              />
+            </label>
           </div>
+          <label style={{ display: "flex", gap: 8, alignItems: "center", color: "var(--muted)", fontSize: 10, marginTop: 4 }}>
+            <input
+              type="checkbox"
+              checked={smsConsent}
+              onChange={e => setSmsConsent(e.target.checked)}
+              style={{ width: 14, accentColor: "var(--clay)", flexShrink: 0 }}
+            />
+            Text me when my order is ready
+          </label>
         </div>
 
-        {/* Order Summary */}
-        <div className="card border-sage-200 p-7 gap-5 text-base">
-          <h2 className="text-2xl text-pine-700 font-bold drop-shadow-sm">Your Order</h2>
-          {orders.length > 0 ? (
-            orders.map((order, index) => (
-              <div key={index} className="flex items-start justify-between py-3 border-b border-cream-200 last:border-0">
-                <div className="flex-1 flex flex-col gap-2">
-                  <div className="font-bold text-pine-700 text-lg">{order.drinkName}</div>
-                  <div className="text-base text-cocoa-500 font-medium">{order.temperature} · {order.milkType}</div>
+        {/* Your Order */}
+        <div className="card" style={{ padding: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <span style={{ color: "var(--clay)" }}><ShoppingBag /></span>
+            <h2 style={{ fontSize: 14, fontWeight: 700 }}>
+              Your order{" "}
+              <span style={{ color: "var(--muted)", fontSize: 10, fontWeight: 400 }}>{orders.length} items</span>
+            </h2>
+          </div>
+          {orders.length === 0 ? (
+            <p style={{ color: "var(--muted)", fontSize: 12, paddingTop: 4 }}>No items yet — go pick a drink!</p>
+          ) : (
+            orders.map((order, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderTop: "1px solid var(--line)" }}>
+                <div>
+                  <strong style={{ display: "block", fontSize: 12 }}>{order.drinkName}</strong>
+                  <small style={{ color: "var(--muted)", fontSize: 10 }}>{order.temperature} · {order.milkType}</small>
                 </div>
-                <div className="font-bold text-sage-600">Free</div>
+                <span style={{ fontSize: 11, color: "var(--sage)" }}>Free</span>
               </div>
             ))
-          ) : (
-            <div className="flex justify-center py-4 text-cocoa-300">No items in your order yet</div>
           )}
-          <div className="flex justify-between pt-3 border-t border-cream-200 text-cocoa-500">
-            <span className="font-semibold">Subtotal</span>
-            <span className="font-semibold">$0.00</span>
-          </div>
-          <div className="rounded-full bg-sage-50 border border-sage-200 flex items-center justify-center p-3.5 text-center text-sm text-pine-500">
-            <span className="font-semibold">✦ All drinks complimentary this season ✦</span>
+          <div className="season-banner" style={{ marginTop: 4 }}>
+            🍂 Complimentary season — enjoy!
           </div>
         </div>
 
-        {/* Donation Section */}
-        <div className="card bg-gradient-to-br from-white to-sage-50 border-sage-200 p-8 gap-7 text-lg">
-          <div className="flex flex-col gap-3">
-            <h2 className="text-2xl text-pine-700 font-bold drop-shadow-sm">Support Our Mission</h2>
-            <p className="text-lg text-cocoa-600 font-semibold">
-              Your drinks are free. Consider giving back to those in need.
-            </p>
+        {/* Give a little back */}
+        <div className="card" style={{ padding: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <span style={{ color: "var(--clay)" }}><Heart /></span>
+            <h2 style={{ fontSize: 14, fontWeight: 700 }}>Give a little back</h2>
           </div>
-
-          <div className="rounded-xl bg-gradient-to-br from-sage-100 to-pine-100 border-2 border-sage-300 p-6 gap-4 shadow-md">
-            <h3 className="font-bold text-pine-700 text-lg">Feeding America</h3>
-            <p className="text-base text-cocoa-600 font-medium leading-relaxed">
-              Feeding America is the largest hunger-relief organization in the United States. It supports a nationwide network of food banks, food pantries, and meal programs that provide food to millions of children, families, and seniors facing hunger. Through donations, partnerships, and community programs, Feeding America works to reduce food insecurity, rescue surplus food, and create long-term solutions to end hunger in America.
-            </p>
+          <p style={{ color: "var(--muted)", fontSize: 11, lineHeight: 1.45, margin: "-4px 0 14px" }}>
+            Help us support neighbors facing hunger through Feeding America.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 5 }}>
+            {donationOptions.map(x => (
+              <button
+                key={x}
+                onClick={() => { setSelectedDonation(x === "Skip" ? null : x); }}
+                style={{
+                  border: `1px solid ${(selectedDonation === x || (x === "Skip" && selectedDonation === null)) ? "var(--espresso)" : "var(--line)"}`,
+                  background: (selectedDonation === x || (x === "Skip" && selectedDonation === null)) ? "var(--espresso)" : "transparent",
+                  color: (selectedDonation === x || (x === "Skip" && selectedDonation === null)) ? "white" : "var(--muted)",
+                  borderRadius: 6,
+                  padding: "9px 3px",
+                  fontSize: 11,
+                  fontWeight: 600,
+                }}
+              >{x}</button>
+            ))}
           </div>
-
-          <div className="flex flex-col gap-4.5 text-base">
-            <label className="font-bold text-pine-700 text-lg">Choose Your Donation</label>
-            <div className="flex gap-4 text-center text-lg">
-              <div onClick={() => handleDonationSelect("$25")} className={donationButtonClass(selectedDonation === "$25")}>
-                <b>$25</b>
-              </div>
-              <div onClick={() => handleDonationSelect("Custom")} className={donationButtonClass(selectedDonation === "Custom")}>
-                <b>Custom</b>
-              </div>
-            </div>
-            {selectedDonation === "Custom" && (
-              <input
-                type="number"
-                value={customAmount}
-                onChange={(e) => setCustomAmount(e.target.value)}
-                placeholder="Enter custom amount"
-                className={inputClass}
-              />
-            )}
-          </div>
-
-          <button
-            onClick={() => handleDonationSelect(null)}
-            className="w-full rounded-xl bg-gradient-to-br from-cream-200 to-cream-300 border-2 border-cream-400 p-4.5 text-center text-base text-cocoa-600 font-semibold cursor-pointer hover:from-cream-300 hover:to-cream-400 hover:shadow-md transition-all"
-          >
-            Skip donation for now
-          </button>
+          {selectedDonation === "Custom" && (
+            <input
+              type="number"
+              placeholder="Enter amount"
+              value={customAmount}
+              onChange={e => setCustomAmount(e.target.value)}
+              style={{ marginTop: 8 }}
+            />
+          )}
         </div>
 
         {/* Total */}
-        <div className="card bg-gradient-to-br from-sage-200 to-pine-200 border-pine-300 p-8 gap-4 text-base">
-          <div className="flex items-center justify-between">
-            <b className="text-2xl text-pine-800 drop-shadow-sm">Total</b>
-            <b className="text-4xl text-pine-800 drop-shadow-sm">${getDonationAmount().toFixed(2)}</b>
-          </div>
-          {getDonationAmount() > 0 && (
-            <p className="text-lg text-pine-700 font-bold">
-              ✦ Thank you for your ${getDonationAmount().toFixed(2)} donation!
-            </p>
-          )}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 4px 4px" }}>
+          <span style={{ fontSize: 12, color: "var(--muted)" }}>Total today</span>
+          <strong style={{ fontSize: 20, fontWeight: 500 }}>
+            {getDonationAmount() > 0 ? `$${getDonationAmount().toFixed(2)}` : "Free"}
+          </strong>
         </div>
 
-        {/* Submit Button */}
-        <button
-          onClick={handleSubmitOrder}
-          className="btn-primary btn-large w-full text-xl shadow-2xl border-2 border-pine-800 gap-3 hover:scale-[1.02]"
-        >
-          <span className="font-black tracking-wide">Submit Order</span>
-          <span className="text-2xl">→</span>
+        <button className="btn-primary" onClick={handleSubmitOrder}>
+          Submit order →
         </button>
-      </div>
       </div>
     </div>
   );

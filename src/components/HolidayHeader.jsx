@@ -1,36 +1,101 @@
-import PropTypes from "prop-types";
+import { useOrder } from "../context/OrderContext";
+import { useNavigate } from "react-router-dom";
 
-const HolidayHeader = ({ className = "" }) => {
+const HolidayHeader = () => {
+  const { totalDonations } = useOrder();
+  const navigate = useNavigate();
+
   return (
     <>
-      <div
-        className={`self-stretch flex flex-col items-start pt-[2.5rem] px-[1.5rem] pb-[2rem] gap-[1.25rem] text-center text-[1rem] font-inter relative overflow-hidden ${className}`}
-        style={{
-          background: 'linear-gradient(135deg, #fde5cc 0%, #faefd8 40%, #f4e8d4 70%, #fde5cc 100%)',
-        }}
-      >
-        {/* Decorative leaf accents */}
-        <div className="absolute top-3 left-4 text-[2rem] opacity-30 rotate-[-20deg]">🍂</div>
-        <div className="absolute top-4 right-6 text-[1.5rem] opacity-25 rotate-[15deg]">🍁</div>
-        <div className="absolute bottom-3 left-8 text-[1.25rem] opacity-20 rotate-[10deg]">🍂</div>
-        <div className="absolute bottom-4 right-10 text-[1.75rem] opacity-25 rotate-[-10deg]">🍁</div>
-      <div className="self-stretch flex items-center justify-center z-10">
-        <img
-          className="h-[10rem] w-[10rem] relative rounded-full object-cover shadow-lg ring-4 ring-white"
-          alt="Fx7 Logo"
-          src="/fx7Logo.PNG"
-        />
+      {/* Hero */}
+      <section style={{
+        minHeight: 260,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        position: "relative",
+        overflow: "hidden",
+        padding: "40px 20px 32px",
+        background: "var(--bg)",
+      }}>
+        {/* Decorative orbit rings */}
+        <div style={{
+          position: "absolute", width: 230, height: 230,
+          top: 20, left: -110,
+          border: "1px solid #e8d9c8", borderRadius: "50%", pointerEvents: "none",
+        }} />
+        <div style={{
+          position: "absolute", width: 170, height: 170,
+          top: 60, right: -85,
+          border: "1px solid #dfe7dd", borderRadius: "50%", pointerEvents: "none",
+        }} />
+
+        {/* Season seal */}
+        <div style={{
+          width: 58, height: 58,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexDirection: "column", gap: 2,
+          border: "1px solid #d6b79d", borderRadius: "50%",
+          color: "var(--clay)",
+          fontSize: 7, lineHeight: 1.25, letterSpacing: "0.1em",
+          marginBottom: 16,
+        }}>
+          <span style={{ fontSize: 13 }}>🍂</span>
+          <span>FALL<br />2026</span>
+        </div>
+
+        <span className="eyebrow" style={{ marginBottom: 6 }}>A little warmth, shared</span>
+
+        <h1 style={{ fontSize: 38, lineHeight: 1.02, letterSpacing: "-0.04em", fontWeight: 500 }}>
+          FX7 Fall<br />
+          <em style={{ color: "var(--clay)", fontFamily: "Georgia, serif", fontStyle: "italic", fontWeight: 400 }}>
+            Coffee House
+          </em>
+        </h1>
+
+        <p style={{ marginTop: 12, color: "var(--muted)", fontSize: 13 }}>
+          Order something cozy. Every drink is on us.
+        </p>
+      </section>
+
+      {/* Donation counter */}
+      <div style={{ padding: "0 20px 28px" }}>
+        <div style={{
+          background: "var(--espresso)",
+          color: "#fffaf2",
+          borderRadius: 12,
+          padding: "15px 18px",
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+        }}>
+          <div style={{
+            width: 32, height: 32,
+            display: "grid", placeItems: "center",
+            color: "#d8a37a",
+            border: "1px solid #66574b",
+            borderRadius: "50%",
+            fontSize: 14,
+            flexShrink: 0,
+          }}>♥</div>
+          <div>
+            <span style={{ color: "#b8aea3", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.14em", fontWeight: 700, display: "block", marginBottom: 3 }}>
+              Raised for Feeding America
+            </span>
+            <strong style={{ fontSize: 20, fontWeight: 500 }}>${totalDonations.toFixed(2)}</strong>
+          </div>
+          <span
+            onClick={() => navigate("/my-orders")}
+            style={{ marginLeft: "auto", color: "#d8a37a", fontSize: 10, lineHeight: 1.4, textAlign: "right", cursor: "pointer" }}
+          >
+            Track my<br />order →
+          </span>
+        </div>
       </div>
-      <div className="self-stretch flex items-center justify-center z-10">
-        <b className="relative text-[1.375rem] md:text-[1.875rem] text-pine-700 tracking-tight px-4 py-2 rounded-xl bg-white/90 shadow-lg backdrop-blur-sm">{`🍂 Fall Coffee House 🍂`}</b>
-      </div>
-    </div>
     </>
   );
-};
-
-HolidayHeader.propTypes = {
-  className: PropTypes.string,
 };
 
 export default HolidayHeader;
