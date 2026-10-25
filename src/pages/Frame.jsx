@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import HolidayHeader from "../components/HolidayHeader";
 import DrinksGrid from "../components/DrinksGrid";
 import { useOrder } from "../context/OrderContext";
+import { DRINKS } from "../data/drinks";
 
 const ChevronRight = () => (
   <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
@@ -25,7 +26,7 @@ const Frame = () => {
               <span className="eyebrow" style={{ marginBottom: 5 }}>Made for the season</span>
               <h2>Fall Coffees</h2>
             </div>
-            <span className="count">2 drinks</span>
+            <span className="count">{DRINKS.filter(d => d.category === "coffee").length} drinks</span>
           </div>
           <DrinksGrid category="coffee" />
         </section>
@@ -37,7 +38,7 @@ const Frame = () => {
               <span className="eyebrow" style={{ marginBottom: 5 }}>Beyond the espresso</span>
               <h2>Other Fall Favorites</h2>
             </div>
-            <span className="count">2 drinks</span>
+            <span className="count">{DRINKS.filter(d => d.category === "other").length} drinks</span>
           </div>
           <DrinksGrid category="other" />
         </section>
