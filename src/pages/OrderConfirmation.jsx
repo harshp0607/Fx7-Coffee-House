@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useOrder } from "../context/OrderContext";
 
 const Check = () => (
   <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
@@ -17,18 +16,14 @@ const ArrowRight = () => (
 const OrderConfirmation = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { getEstimatedWaitTime } = useOrder();
-  const [waitTime, setWaitTime] = useState(null);
 
   const orderData = location.state?.orderData;
   const userInfo = location.state?.userInfo;
 
   useEffect(() => {
     if (!orderData || !userInfo) { navigate("/"); return; }
-    const estimatedTime = getEstimatedWaitTime(orderData.submittedAt);
-    setWaitTime(estimatedTime);
     if (userInfo.phone) localStorage.setItem("fx7_user_phone", userInfo.phone);
-  }, [orderData, userInfo, navigate, getEstimatedWaitTime]);
+  }, [orderData, userInfo, navigate]);
 
   if (!orderData || !userInfo) return null;
 
@@ -42,13 +37,15 @@ const OrderConfirmation = () => {
         <span className="eyebrow">You are all set</span>
         <h1>See you soon,<br /><em>{firstName}.</em></h1>
         <p className="confirmation-copy">
-          Your order is in. We'll text you when it's ready for pickup.
+          We'll call your name when it's ready. No rush.
         </p>
 
         <div className="wait-card">
-          <span>Estimated wait</span>
-          <strong>{waitTime ? waitTime.displayText : "~10 min"}</strong>
-          <span className="order-number">Order #{orderData.orderNumber || "—"}</span>
+          <span>While you wait</span>
+          <strong style={{ fontSize: 18, lineHeight: 1.35 }}>We're in no rush.</strong>
+          <span style={{ color: "var(--muted)", fontSize: 11, lineHeight: 1.5, display: "block", marginTop: 4 }}>
+            Your drink may take a while — but that's the whole point, isn't it? To slow life down together.
+          </span>
         </div>
 
         <div className="summary-mini">

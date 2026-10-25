@@ -26,12 +26,6 @@ const User = () => (
     <path d="M3 14c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
   </svg>
 );
-const Leaf = () => (
-  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-    <path d="M2 13C3 10 5 6 13 2C9 2 4 5 2 13Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
-    <path d="M2 13L8 7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-  </svg>
-);
 const ArrowRight = () => (
   <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
     <path d="M3 8.5h11M10 5l4 3.5L10 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -42,7 +36,6 @@ const Frame3 = () => {
   const navigate = useNavigate();
   const { orders, submitOrder } = useOrder();
   const [userInfo, setUserInfo] = useState({ name: "", phone: "" });
-  const [smsConsent, setSmsConsent] = useState(true);
 
   const handleSubmitOrder = async () => {
     if (orders.length === 0) { alert("Please add items to your order first!"); return; }
@@ -63,7 +56,7 @@ const Frame3 = () => {
         <div className="checkout-intro">
           <span className="eyebrow">Almost there</span>
           <h1>Make it yours.</h1>
-          <p>Fill in your details and we'll text you when your order is ready.</p>
+          <p>Tell us your name and we'll call you when it's ready.</p>
         </div>
 
         {/* Your Details */}
@@ -101,14 +94,6 @@ const Frame3 = () => {
               />
             </label>
           </div>
-          <label className="check-row">
-            <input
-              type="checkbox"
-              checked={smsConsent}
-              onChange={e => setSmsConsent(e.target.checked)}
-            />
-            Text me when my order is ready
-          </label>
         </section>
 
         {/* Your Order */}
@@ -130,9 +115,6 @@ const Frame3 = () => {
               </div>
             ))
           )}
-          <div className="season-banner">
-            <Leaf /> Complimentary season — enjoy!
-          </div>
         </section>
 
         {/* Total */}
