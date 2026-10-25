@@ -3,6 +3,13 @@
 
 export const DRINKS = [
   {
+    id: "pumpkin-spice-latte",
+    image: "/coffee-spiced.png",
+    drinkName: "Pumpkin Spice Latte",
+    description: "The classic. Espresso with pumpkin, cinnamon, nutmeg, and clove. Steamed milk, topped with whipped cream.",
+    category: "coffee"
+  },
+  {
     id: "vanilla-cardamom-fig",
     image: "/coffee-latte.png",
     drinkName: "Vanilla Cardamom Fig",
