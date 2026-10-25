@@ -3,45 +3,31 @@
 
 export const DRINKS = [
   {
-    id: "pumpkin-spice-latte",
-    image: "/coffee-latte.png",
-    drinkName: "Pumpkin Spice Latte",
-    description: "Warm pumpkin with cinnamon, nutmeg, and a hint of clove",
-    category: "coffee"
-  },
-  {
-    id: "apple-cider-latte",
+    id: "pumpkin-masala-chai",
     image: "/coffee-spiced.png",
-    drinkName: "Apple Cider Latte",
-    description: "Crisp apple cider blended with espresso and fall spices",
-    category: "coffee"
-  },
-  {
-    id: "maple-brown-sugar-latte",
-    image: "/coffee-latte.png",
-    drinkName: "Maple Brown Sugar Latte",
-    description: "Rich maple syrup with toasted brown sugar and espresso",
-    category: "coffee"
-  },
-  {
-    id: "salted-caramel-latte",
-    image: "/coffee-spiced.png",
-    drinkName: "Salted Caramel Latte",
-    description: "Buttery caramel with a touch of sea salt and espresso",
-    category: "coffee"
-  },
-  {
-    id: "chai-latte",
-    image: "/coffee-cocoa.png",
-    drinkName: "Harvest Chai Latte",
-    description: "Bold chai spices with cardamom, ginger, and steamed milk",
+    drinkName: "Pumpkin Masala Chai",
+    description: "The warmth of pumpkin spice meets the depth of masala chai — cinnamon, ginger, cardamom, and a rich pumpkin base",
     category: "other"
   },
   {
-    id: "apple-cider",
-    image: "/coffee-spiced.png",
-    drinkName: "Warm Apple Cider",
-    description: "Classic warm cider with cinnamon sticks and orange zest",
+    id: "maple-butter-pecan",
+    image: "/coffee-latte.png",
+    drinkName: "Maple Butter Pecan",
+    description: "A classic butter pecan elevated with a bold maple twist — toasted, buttery, and just sweet enough",
+    category: "coffee"
+  },
+  {
+    id: "smoky-smores",
+    image: "/coffee-cocoa.png",
+    drinkName: "Smoky S'mores",
+    description: "Chocolate, toasted marshmallow, and graham — like s'mores around a campfire, with a subtle cayenne kick for heat",
+    category: "coffee"
+  },
+  {
+    id: "vanilla-cardamom-fig",
+    image: "/coffee-latte.png",
+    drinkName: "Vanilla Cardamom Fig",
+    description: "Sweet fig and smooth vanilla with an aromatic Indian cardamom finish — a fall flavor with a distinctive twist",
     category: "other"
   }
 ];

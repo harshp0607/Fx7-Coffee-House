@@ -25,7 +25,7 @@ const Frame = () => {
               <span className="eyebrow" style={{ marginBottom: 5 }}>Made for the season</span>
               <h2>Fall Coffees</h2>
             </div>
-            <span className="count">4 drinks</span>
+            <span className="count">2 drinks</span>
           </div>
           <DrinksGrid category="coffee" />
         </section>
