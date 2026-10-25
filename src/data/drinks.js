@@ -3,11 +3,11 @@
 
 export const DRINKS = [
   {
-    id: "pumpkin-masala-chai",
-    image: "/coffee-spiced.png",
-    drinkName: "Pumpkin Masala Chai",
-    description: "The warmth of pumpkin spice meets the depth of masala chai — cinnamon, ginger, cardamom, and a rich pumpkin base. Add a note to make it with espresso for a chai latte.",
-    category: "other"
+    id: "vanilla-cardamom-fig",
+    image: "/coffee-latte.png",
+    drinkName: "Vanilla Cardamom Fig",
+    description: "Sweet fig and smooth vanilla with an aromatic Indian cardamom finish — a fall flavor with a distinctive twist",
+    category: "coffee"
   },
   {
     id: "maple-butter-pecan",
@@ -24,11 +24,11 @@ export const DRINKS = [
     category: "coffee"
   },
   {
-    id: "vanilla-cardamom-fig",
-    image: "/coffee-latte.png",
-    drinkName: "Vanilla Cardamom Fig",
-    description: "Sweet fig and smooth vanilla with an aromatic Indian cardamom finish — a fall flavor with a distinctive twist",
-    category: "coffee"
+    id: "pumpkin-masala-chai",
+    image: "/coffee-spiced.png",
+    drinkName: "Pumpkin Masala Chai",
+    description: "The warmth of pumpkin spice meets the depth of masala chai — cinnamon, ginger, cardamom, and a rich pumpkin base. Add a note to make it with espresso for a chai latte.",
+    category: "other"
   }
 ];
 
