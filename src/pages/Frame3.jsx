@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useOrder } from "../context/OrderContext";
 
-// Venmo integration preserved — not wired to UI
+// Venmo integration preserved, not wired to UI
 const openVenmo = (amount, userName) => {
   if (amount <= 0) return false;
   const venmoUsername = "harshp0607";
@@ -103,7 +103,7 @@ const Frame3 = () => {
             <h2>Your order <span>{orders.length} items</span></h2>
           </div>
           {orders.length === 0 ? (
-            <p style={{ color: "var(--muted)", fontSize: 12 }}>No items yet — go pick a drink!</p>
+            <p style={{ color: "var(--muted)", fontSize: 12 }}>No items yet. Go pick a drink!</p>
           ) : (
             orders.map((order, i) => (
               <div key={i} className="order-line">

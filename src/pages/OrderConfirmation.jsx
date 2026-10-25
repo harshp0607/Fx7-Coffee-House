@@ -44,7 +44,7 @@ const OrderConfirmation = () => {
           <span>While you wait</span>
           <strong style={{ fontSize: 18, lineHeight: 1.35 }}>We're in no rush.</strong>
           <span style={{ color: "var(--muted)", fontSize: 11, lineHeight: 1.5, display: "block", marginTop: 4 }}>
-            Your drink may take a while — but that's the whole point, isn't it? To slow life down together.
+            Your drink may take a while. But that's the whole point, isn't it? To slow life down together.
           </span>
         </div>
 
