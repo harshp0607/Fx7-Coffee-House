@@ -31,6 +31,13 @@ export const DRINKS = [
     category: "coffee"
   },
   {
+    id: "honey-cinnamon-latte",
+    image: "/coffee-latte.png",
+    drinkName: "Honey Cinnamon Latte",
+    description: "Espresso sweetened with golden honey and warm cinnamon. Simple, comforting, and just right.",
+    category: "coffee"
+  },
+  {
     id: "pumpkin-masala-chai",
     image: "/coffee-spiced.png",
     drinkName: "Pumpkin Masala Chai",
